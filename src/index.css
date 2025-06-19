@@ -1,1 +1,7 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --font-heading: 'Instrument Serif', serif;
+  --font-body: 'Space Grotesk', sans-serif;
+}
