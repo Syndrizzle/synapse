@@ -9,13 +9,22 @@ export interface FileData {
 
 interface FileState {
   files: FileData[];
+  quizId: string | null;
+  uploadSpeed: number; // in KB/s
+  processingStatus: string | null;
   addFiles: (files: FileData[]) => void;
   removeFile: (id: string) => void;
   clearFiles: () => void;
+  setQuizId: (quizId: string | null) => void;
+  setUploadSpeed: (speed: number) => void;
+  setProcessingStatus: (status: string | null) => void;
 }
 
 export const useFileStore = create<FileState>((set) => ({
   files: [],
+  quizId: null,
+  uploadSpeed: 0,
+  processingStatus: null,
   addFiles: (newFiles) =>
     set((state) => {
       const combined = [...state.files, ...newFiles];
@@ -32,5 +41,8 @@ export const useFileStore = create<FileState>((set) => ({
     set((state) => ({
       files: state.files.filter((file) => file.id !== id),
     })),
-  clearFiles: () => set({ files: [] }),
+  clearFiles: () => set({ files: [], quizId: null, uploadSpeed: 0, processingStatus: null }),
+  setQuizId: (quizId) => set({ quizId }),
+  setUploadSpeed: (speed) => set({ uploadSpeed: speed }),
+  setProcessingStatus: (status) => set({ processingStatus: status }),
 }));

@@ -3,9 +3,12 @@ import { Button } from "../components/Button";
 import { UploadArea } from "../components/UploadArea";
 import { useFileStore } from "../stores/fileStore";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { config } from "../config/env";
+import toast from "react-hot-toast";
 
 const UploadMobilePage = () => {
-  const { files, clearFiles } = useFileStore();
+  const { files, clearFiles, setQuizId, setUploadSpeed } = useFileStore();
   const navigate = useNavigate();
 
   const handleGoBack = () => {
@@ -19,9 +22,56 @@ const UploadMobilePage = () => {
     }
   };
 
+  const handleConfirmUpload = async () => {
+    if (files.length === 0) {
+      toast.error("Please upload at least one file.");
+      return;
+    }
+
+    navigate("/uploading");
+
+    const formData = new FormData();
+    files.forEach((fileData) => {
+      formData.append("pdfs", fileData.file);
+    });
+
+    try {
+      const startTime = Date.now();
+      const response = await axios.post(
+        `${config.apiBaseUrl}/api/quiz/generate`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress: (progressEvent) => {
+            const { loaded, total } = progressEvent;
+            if (total) {
+              const elapsedTime = (Date.now() - startTime) / 1000; // in seconds
+              const speed = loaded / elapsedTime / 1024; // in KB/s
+              setUploadSpeed(speed);
+            }
+          },
+        }
+      );
+
+      if (response.status === 202 && response.data.data.quizId) {
+        setQuizId(response.data.data.quizId);
+        navigate("/analyzing");
+      } else {
+        toast.error("Failed to start quiz generation.");
+        navigate("/error");
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+      toast.error("An error occurred during upload.");
+      navigate("/error");
+    }
+  };
+
   return (
     <>
-      <div className="bg-neutral-900 min-w-screen min-h-screen flex-col px-6 py-10 flex gap-6 pb-40">
+      <div className="bg-neutral-900 min-h-screen flex-col px-6 py-10 flex gap-6 pb-40">
         <div className="flex flex-col justify-between">
           <div className="flex flex-col gap-6">
             <img src="/logo.svg" alt=" Synapse Logo" className="w-1/2 h-14" />
@@ -38,7 +88,11 @@ const UploadMobilePage = () => {
         <UploadArea />
       </div>
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-neutral-900 border-t border-neutral-800 flex flex-col gap-4">
-        <Button size={"lg"} disabled={files.length === 0}>
+        <Button
+          size={"lg"}
+          disabled={files.length === 0}
+          onClick={handleConfirmUpload}
+        >
           <Upload strokeWidth={2.5} />
           Confirm Upload
         </Button>

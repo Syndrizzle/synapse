@@ -50,34 +50,15 @@ const upload = multer({
  * POST /api/quiz/generate
  * Upload PDFs and generate MCQs
  */
-router.post('/generate', getRateLimiter(), upload.array('pdfs', 5), async (req, res) => {
+router.post('/generate', getRateLimiter(), upload.array('pdfs', 5), async (req, res, next) => {
+    const quizId = uuidv4();
     try {
-        logger.info(`Quiz generation request received.`);
+        logger.info(`[${quizId}] Quiz generation request received.`);
 
         // Validate file upload
         if (!req.files || req.files.length === 0) {
-            return res.status(400).json(createError(
-                'No PDF files uploaded',
-                'FILES_REQUIRED',
-                { supportedFormats: config.upload.allowedFileTypes }
-            ));
+            return res.status(400).json(createError('No PDF files uploaded', 'FILES_REQUIRED'));
         }
-
-        // Validate file count
-        if (req.files.length < 1 || req.files.length > config.upload.maxFilesCount) {
-            return res.status(400).json(createError(
-                `File count must be between 1 and ${config.upload.maxFilesCount}`,
-                'INVALID_FILE_COUNT',
-                { 
-                    min: 1, 
-                    max: config.upload.maxFilesCount,
-                    provided: req.files.length 
-                }
-            ));
-        }
-
-        // Note: File size and type validation is already handled by multer
-        // OpenRouter will validate PDF format during processing
 
         // Parse request body for generation options
         const generationOptions = {
@@ -88,43 +69,33 @@ router.post('/generate', getRateLimiter(), upload.array('pdfs', 5), async (req, 
             language: req.body.language || 'en',
         };
 
-        // Validate question count
-        if (generationOptions.questionCount < config.quiz.minQuestions || 
-            generationOptions.questionCount > config.quiz.maxQuestions) {
-            return res.status(400).json(createError(
-                `Question count must be between ${config.quiz.minQuestions} and ${config.quiz.maxQuestions}`,
-                'INVALID_QUESTION_COUNT',
-                { 
-                    min: config.quiz.minQuestions, 
-                    max: config.quiz.maxQuestions,
-                    provided: generationOptions.questionCount 
-                }
-            ));
-        }
-
-        // Generate unique quiz ID
-        const quizId = uuidv4();
-        
-        // Calculate total size of all files
-        const totalSize = req.files.reduce((sum, file) => sum + file.buffer.length, 0);
-        
-        // Store processing status in Redis
+        // Store initial processing status
         const processingKey = REDIS_KEYS.QUIZ_PROCESSING(quizId);
+        await redisService.setJSON(processingKey, {
+            status: 'uploaded',
+            startedAt: new Date().toISOString(),
+            options: generationOptions,
+            fileCount: req.files.length,
+            files: req.files.map(f => ({ name: f.originalname, size: f.size })),
+        }, 300); // 5 minutes TTL
+
+        // Respond immediately to the client
+        res.status(202).json(createSuccess({ quizId }, 'Files uploaded, processing started.'));
+
+        // --- Process in the background ---
+        logger.info(`[${quizId}] Starting background processing...`);
+        
+        // Update status to processing
         await redisService.setJSON(processingKey, {
             status: 'processing',
             startedAt: new Date().toISOString(),
             options: generationOptions,
             fileCount: req.files.length,
-            totalSize: totalSize,
-            files: req.files.map(f => ({ name: f.originalname, size: f.size })),
-        }, 300); // 5 minutes TTL
+        }, 300);
 
-        // Generate MCQs using OpenRouter's native PDF processing
-        logger.info(`Generating MCQs from ${req.files.length} PDF(s) using AI...`);
         const pdfBuffers = req.files.map(file => file.buffer);
         const quiz = await openRouterService.generateMCQsFromPDF(pdfBuffers, generationOptions);
 
-        // Enhance quiz with additional metadata
         quiz.id = quizId;
         quiz.sourceFiles = req.files.map(file => ({
             name: file.originalname,
@@ -134,66 +105,26 @@ router.post('/generate', getRateLimiter(), upload.array('pdfs', 5), async (req, 
         }));
         quiz.createdAt = new Date().toISOString();
 
-        // Store quiz in Redis
         const quizKey = REDIS_KEYS.QUIZ(quizId);
         await redisService.setJSON(quizKey, quiz, config.quiz.ttl);
 
-        // Update processing status
         await redisService.setJSON(processingKey, {
             status: 'completed',
             quizId,
             completedAt: new Date().toISOString(),
-        }, 60); // Keep for 1 minute
+        }, 60);
 
-        logger.info(`Quiz generated successfully: ${quizId} (${quiz.questions.length} questions)`);
-
-        // Return quiz without correct answers for security
-        const clientQuiz = {
-            ...quiz,
-            questions: quiz.questions.map(q => ({
-                id: q.id,
-                question: q.question,
-                options: q.options,
-                topic: q.topic,
-                difficulty: q.difficulty,
-            })),
-        };
-
-        const responseData = {
-            quiz: clientQuiz,
-            processingTime: Date.now() - new Date(quiz.createdAt).getTime(),
-            questionsGenerated: quiz.questions.length,
-            estimatedDuration: quiz.metadata.estimatedDuration,
-        };
-
-        res.status(201).json(createSuccess(
-            responseData,
-            'Quiz generated successfully'
-        ));
+        logger.info(`[${quizId}] Quiz generated successfully.`);
 
     } catch (error) {
-        logger.error('Quiz generation failed:', { message: error.message, stack: error.stack });
-        
-        // Determine error type and status code
-        let statusCode = 500;
-        let errorCode = 'GENERATION_FAILED';
-        
-        if (error.message.includes('OpenRouter') || error.message.includes('API')) {
-            statusCode = 503;
-            errorCode = 'AI_SERVICE_ERROR';
-        } else if (error.message.includes('PDF processing') || error.message.includes('Invalid response')) {
-            statusCode = 400;
-            errorCode = 'PDF_PROCESSING_ERROR';
-        } else if (error.message.includes('timeout')) {
-            statusCode = 408;
-            errorCode = 'REQUEST_TIMEOUT';
-        }
-
-        res.status(statusCode).json(createError(
-            error.message,
-            errorCode,
-            config.server.isDevelopment ? { stack: error.stack } : {}
-        ));
+        logger.error(`[${quizId}] Quiz generation failed:`, { message: error.message, stack: error.stack });
+        const processingKey = REDIS_KEYS.QUIZ_PROCESSING(quizId);
+        await redisService.setJSON(processingKey, {
+            status: 'failed',
+            error: error.message,
+            failedAt: new Date().toISOString(),
+        }, 60);
+        // We don't call next(error) because the response has already been sent.
     }
 });
 

@@ -43,6 +43,7 @@ const config = {
     // SERVER CONFIGURATION
     // =================================================================
     server: {
+        host: process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost'),
         port: parseIntSafe(process.env.PORT, 3000, 1, 65535),
         nodeEnv: process.env.NODE_ENV || 'development',
         isDevelopment: (process.env.NODE_ENV || 'development') === 'development',

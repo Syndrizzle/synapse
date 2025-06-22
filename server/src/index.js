@@ -304,11 +304,12 @@ async function startServer() {
         setupGracefulShutdown();
         
         // Start listening
-        const server = app.listen(config.server.port, () => {
+        const server = app.listen(config.server.port, config.server.host, () => {
+            const address = config.server.host === '0.0.0.0' ? 'localhost' : config.server.host;
             logger.info('✅ Server started successfully!');
-            logger.info(`🌐 Server running on port ${config.server.port}`);
-            logger.info(`📡 Health check: http://localhost:${config.server.port}${config.monitoring.healthCheckPath}`);
-            logger.info(`🔗 API Base URL: http://localhost:${config.server.port}/api`);
+            logger.info(`🌐 Server running on http://${config.server.host}:${config.server.port}`);
+            logger.info(`📡 Health check: http://${config.server.host}:${config.server.port}${config.monitoring.healthCheckPath}`);
+            logger.info(`🌐 API Base URL: http://${config.server.host}:${config.server.port}/api`);
             
             if (config.development.debugMode) {
                 logger.debug('🔍 Debug mode enabled - detailed logging active');

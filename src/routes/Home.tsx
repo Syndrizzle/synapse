@@ -69,7 +69,7 @@ export const Home = () => {
         <img
           src="/logo.svg"
           alt="Synapse Logo"
-          className="md:h-10 h-8 w-auto object-cover"
+          className="md:h-10 h-8"
         />
       </header>
       <div className="text-center">
@@ -97,7 +97,7 @@ export const Home = () => {
             <div className="flex items-center justify-center">
               <LottieAnimation
                 animationData={UploadLottie}
-                className="invert w-10 md:w-12"
+                className="invert w-10 md:w-12 md:h-12 h-10"
               />
             </div>
 
