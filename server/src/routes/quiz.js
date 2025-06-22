@@ -30,7 +30,7 @@ const parseFileSize = (sizeStr) => {
     return Math.floor(value * units[unit]);
 };
 
-// Configure multer for file uploads (supports multiple files)
+// Configure multer for file uploads (supports 1-5 files)
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -48,18 +48,31 @@ const upload = multer({
 
 /**
  * POST /api/quiz/generate
- * Upload PDF and generate MCQs
+ * Upload PDFs and generate MCQs
  */
-router.post('/generate', getRateLimiter(), upload.single('pdf'), async (req, res) => {
+router.post('/generate', getRateLimiter(), upload.array('pdfs', 5), async (req, res) => {
     try {
         logger.info(`Quiz generation request received.`);
 
         // Validate file upload
-        if (!req.file) {
+        if (!req.files || req.files.length === 0) {
             return res.status(400).json(createError(
-                'No PDF file uploaded',
-                'FILE_REQUIRED',
+                'No PDF files uploaded',
+                'FILES_REQUIRED',
                 { supportedFormats: config.upload.allowedFileTypes }
+            ));
+        }
+
+        // Validate file count
+        if (req.files.length < 1 || req.files.length > config.upload.maxFilesCount) {
+            return res.status(400).json(createError(
+                `File count must be between 1 and ${config.upload.maxFilesCount}`,
+                'INVALID_FILE_COUNT',
+                { 
+                    min: 1, 
+                    max: config.upload.maxFilesCount,
+                    provided: req.files.length 
+                }
             ));
         }
 
@@ -92,27 +105,33 @@ router.post('/generate', getRateLimiter(), upload.single('pdf'), async (req, res
         // Generate unique quiz ID
         const quizId = uuidv4();
         
+        // Calculate total size of all files
+        const totalSize = req.files.reduce((sum, file) => sum + file.buffer.length, 0);
+        
         // Store processing status in Redis
         const processingKey = REDIS_KEYS.QUIZ_PROCESSING(quizId);
         await redisService.setJSON(processingKey, {
             status: 'processing',
             startedAt: new Date().toISOString(),
             options: generationOptions,
-            pdfSize: req.file.buffer.length,
+            fileCount: req.files.length,
+            totalSize: totalSize,
+            files: req.files.map(f => ({ name: f.originalname, size: f.size })),
         }, 300); // 5 minutes TTL
 
         // Generate MCQs using OpenRouter's native PDF processing
-        logger.info('Generating MCQs directly from PDF using AI...');
-        const quiz = await openRouterService.generateMCQsFromPDF(req.file.buffer, generationOptions);
+        logger.info(`Generating MCQs from ${req.files.length} PDF(s) using AI...`);
+        const pdfBuffers = req.files.map(file => file.buffer);
+        const quiz = await openRouterService.generateMCQsFromPDF(pdfBuffers, generationOptions);
 
         // Enhance quiz with additional metadata
         quiz.id = quizId;
-        quiz.sourceFile = {
-            name: req.file.originalname,
-            size: req.file.size,
-            type: req.file.mimetype,
+        quiz.sourceFiles = req.files.map(file => ({
+            name: file.originalname,
+            size: file.size,
+            type: file.mimetype,
             uploadedAt: new Date().toISOString(),
-        };
+        }));
         quiz.createdAt = new Date().toISOString();
 
         // Store quiz in Redis

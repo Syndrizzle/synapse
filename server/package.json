@@ -27,6 +27,7 @@
     "multer": "^2.0.1",
     "openai": "^5.5.1",
     "rate-limit-redis": "^4.2.1",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "winston": "^3.17.0"
   }
 }

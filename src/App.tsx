@@ -1,19 +1,14 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { Home } from "./routes/Home";
-import { Background } from "./components/Background";
-import { Header } from "./components/Header";
-import { Footer } from "./components/Footer";
+import UploadPage from "./routes/Upload";
 
 function App() {
   return (
     <Router>
-      <Background>
-        <Header />
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
-        <Footer />
-      </Background>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/upload" element={<UploadPage />} />
+      </Routes>
     </Router>
   );
 }
