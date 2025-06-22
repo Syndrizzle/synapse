@@ -1,19 +1,47 @@
 import LottieAnimation from "../components/LottieAnimation";
 import UploadLottie from "../animations/upload.json";
 import { config } from "../config/env";
-import { useDropzone } from "react-dropzone";
+import { useDropzone, type FileRejection } from "react-dropzone";
 import { useNavigate } from "react-router-dom";
 import { useFileStore } from "../stores/fileStore";
 import { generateThumbnail } from "../lib/pdf";
 import { useCallback } from "react";
+import toast from "react-hot-toast";
 
 export const Home = () => {
   const navigate = useNavigate();
-  const { addFiles } = useFileStore();
+  const { files, addFiles } = useFileStore();
 
   const onDrop = useCallback(
-    async (acceptedFiles: File[]) => {
-      const fileDataPromises = acceptedFiles.map(async (file) => {
+    async (acceptedFiles: File[], fileRejections: FileRejection[]) => {
+      fileRejections.forEach(({ file, errors }) => {
+        errors.forEach((error) => {
+          if (error.code === "file-too-large") {
+            toast.error(
+              `File "${file.name}" is too large. Max size is ${
+                config.maxFileSize / (1024 * 1024)
+              }MB.`
+            );
+          } else {
+            toast.error(error.message);
+          }
+        });
+      });
+
+      const currentFileCount = files.length;
+      const remainingSlots = config.maxFiles - currentFileCount;
+      const filesToAccept = acceptedFiles.slice(0, remainingSlots);
+      const rejectedCount = acceptedFiles.length - filesToAccept.length;
+
+      if (rejectedCount > 0) {
+        toast.error(
+          `${rejectedCount} file(s) were not accepted because the maximum of ${config.maxFiles} files has been reached.`
+        );
+      }
+
+      if (filesToAccept.length === 0) return;
+
+      const fileDataPromises = filesToAccept.map(async (file) => {
         const thumbnail = await generateThumbnail(file);
         return {
           id: `${file.name}-${file.lastModified}`,
@@ -25,14 +53,14 @@ export const Home = () => {
       addFiles(fileData);
       navigate("/upload");
     },
-    [addFiles, navigate]
+    [files, addFiles, navigate]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "application/pdf": [".pdf"] },
     maxSize: config.maxFileSize,
-    maxFiles: config.maxFiles,
+    disabled: files.length >= config.maxFiles,
   });
 
   return (
