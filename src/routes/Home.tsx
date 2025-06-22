@@ -123,7 +123,7 @@ export const Home = () => {
         </div>
       </div>
       <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer">
-        <footer className="fixed bottom-0 left-0 right-0 flex-row gap-x-2 flex items-center z-50 w-full justify-center mb-12 opacity-70 hover:opacity-100 transition-opacity">
+        <footer className="fixed bottom-0 left-0 right-0 flex-row gap-x-2 flex items-center z-50 w-full justify-center mb-6 opacity-70 hover:opacity-100 transition-opacity">
           <p className="font-body text-neutral-50">Powered by</p>
           <img
             src="/openrouter.svg"

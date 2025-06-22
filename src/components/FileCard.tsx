@@ -18,7 +18,7 @@ export const FileCard = ({ fileData }: FileCardProps) => {
   };
 
   return (
-    <div className="relative p-4 bg-neutral-900 flex flex-col items-center justify-center gap-8 rounded-lg shadow-md">
+    <div className="relative p-6 md:p-4 bg-neutral-900 flex flex-col items-center justify-center gap-8 rounded-lg shadow-md">
       <div
         className="absolute top-2 right-2 bg-neutral-900 p-2 rounded text-neutral-50 transition-colors duration-300 cursor-pointer hover:bg-yellow-400 hover:text-neutral-900"
         title="Delete File"
