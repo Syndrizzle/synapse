@@ -12,16 +12,20 @@
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/vite": "^4.1.10",
+    "@types/pdfjs-dist": "^2.10.378",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lottie-web": "^5.13.0",
     "lucide-react": "^0.518.0",
     "motion": "^12.18.1",
+    "pdfjs-dist": "3.4.120",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-dropzone": "^14.3.8",
     "react-router-dom": "^7.6.2",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss": "^4.1.10"
+    "tailwindcss": "^4.1.10",
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

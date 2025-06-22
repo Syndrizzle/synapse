@@ -1,83 +1,39 @@
-import React, { useState, useRef, useCallback } from 'react';
+import LottieAnimation from "../components/LottieAnimation";
+import UploadLottie from "../animations/upload.json";
+import { config } from "../config/env";
+import { useDropzone } from "react-dropzone";
 import { useNavigate } from "react-router-dom";
-import LottieAnimation from '../components/LottieAnimation';
-import UploadLottie from '../animations/upload.json';
-import FilesLottie from '../animations/files.json';
-import { config } from '../config/env';
-import type { DragState } from '../types/upload';
+import { useFileStore } from "../stores/fileStore";
+import { generateThumbnail } from "../lib/pdf";
+import { useCallback } from "react";
 
 export const Home = () => {
   const navigate = useNavigate();
-  const [dragState, setDragState] = useState<DragState>({
-    isDragging: false,
-    dragCounter: 0,
+  const { addFiles } = useFileStore();
+
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      const fileDataPromises = acceptedFiles.map(async (file) => {
+        const thumbnail = await generateThumbnail(file);
+        return {
+          id: `${file.name}-${file.lastModified}`,
+          file,
+          thumbnail,
+        };
+      });
+      const fileData = await Promise.all(fileDataPromises);
+      addFiles(fileData);
+      navigate("/upload");
+    },
+    [addFiles, navigate]
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { "application/pdf": [".pdf"] },
+    maxSize: config.maxFileSize,
+    maxFiles: config.maxFiles,
   });
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFilesAdded = useCallback((files: File[]) => {
-    navigate('/upload', { state: { files } });
-  }, [navigate]);
-
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    setDragState(prev => ({
-      isDragging: true,
-      dragCounter: prev.dragCounter + 1,
-    }));
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    setDragState(prev => {
-      const newCounter = prev.dragCounter - 1;
-      return {
-        isDragging: newCounter > 0,
-        dragCounter: newCounter,
-      };
-    });
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    setDragState({ isDragging: false, dragCounter: 0 });
-    
-    const files = Array.from(e.dataTransfer.files);
-    const pdfFiles = files.filter(file => file.type === 'application/pdf');
-    
-    if (pdfFiles.length > 0) {
-      handleFilesAdded(pdfFiles);
-    }
-  }, [handleFilesAdded]);
-
-  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      handleFilesAdded(files);
-    }
-    e.target.value = '';
-  }, [handleFilesAdded]);
-
-  const handleClick = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const getDragStyles = () => {
-    if (dragState.isDragging) {
-      return 'scale-105 border-yellow-300';
-    }
-    return "hover:bg-neutral-700 border-neutral-500 hover:border-yellow-300 transition-colors duration-300";
-  };
 
   return (
     <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center gap-y-6 px-6 md:px-10">
@@ -93,50 +49,34 @@ export const Home = () => {
           Unlock your inner academic glowup.
         </p>
         <p className="text-neutral-200 font-body text-center md:text-lg mt-4">
-          Synapse helps you create instant quizzes from your notes effortlessly 🪄
+          Synapse helps you create instant quizzes from your notes effortlessly
+          🪄
         </p>
       </div>
-      <div className="w-full max-w-3xl shadow-2xl shadow-neutral-950/60">
+      <div
+        {...getRootProps()}
+        className="w-full max-w-3xl shadow-2xl shadow-neutral-950/60"
+      >
+        <input {...getInputProps()} />
         <div
           className={`
             relative bg-neutral-800 px-4 py-8 
-            transition-all duration-300 cursor-pointer border-2 border-dashed
-            ${getDragStyles()}
+            transition-all duration-300 cursor-pointer border-2 border-dashed hover:bg-neutral-700 border-neutral-500 hover:border-yellow-300
+            ${isDragActive ? "bg-neutral-700 border-yellow-300" : ""}
           `}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          onClick={handleClick}
         >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/pdf"
-            multiple
-            className="hidden"
-            onChange={handleFileInputChange}
-          />
-
           <div className="flex items-center justify-center flex-col gap-4">
             <div className="flex items-center justify-center">
-              {dragState.isDragging ? (
-                <LottieAnimation
-                  animationData={FilesLottie}
-                  className="invert w-10 md:w-12"
-                />
-              ) : (
-                <LottieAnimation
-                  animationData={UploadLottie}
-                  className="invert w-10 md:w-12"
-                />
-              )}
+              <LottieAnimation
+                animationData={UploadLottie}
+                className="invert w-10 md:w-12"
+              />
             </div>
 
             <div className="text-center">
               <p className="text-neutral-50 font-body font-bold md:text-2xl text-xl">
-                {dragState.isDragging
-                  ? "Drop your PDF files here"
+                {isDragActive
+                  ? "Drop the files here ..."
                   : "Upload your PDF files"}
               </p>
 
