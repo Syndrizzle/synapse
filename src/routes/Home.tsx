@@ -64,73 +64,71 @@ export const Home = () => {
   });
 
   return (
-    <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center gap-y-6 px-6 md:px-10">
-      <header className="fixed top-0 left-0 right-0  flex items-center z-50 w-full justify-center mt-12">
-        <img
-          src="/logo.svg"
-          alt="Synapse Logo"
-          className="md:h-10 h-8"
-        />
-      </header>
-      <div className="text-center">
-        <p className="text-neutral-50 font-heading md:text-5xl text-4xl text-center">
-          Unlock your inner academic glowup.
-        </p>
-        <p className="text-neutral-200 font-body text-center md:text-lg mt-4">
-          Synapse helps you create instant quizzes from your notes effortlessly
-          🪄
-        </p>
+    <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-between px-6 md:px-10 py-10">
+      <div className="flex items-center w-full justify-center">
+        <img src="/logo.svg" alt="Synapse Logo" className="md:h-10 h-8" />
       </div>
-      <div
-        {...getRootProps()}
-        className="w-full max-w-3xl shadow-2xl shadow-neutral-950/60"
-      >
-        <input {...getInputProps()} />
+      <div className="flex flex-col gap-y-6 w-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-neutral-50 font-heading md:text-5xl text-4xl text-center">
+            Unlock your inner academic glowup.
+          </p>
+          <p className="text-neutral-200 font-body text-center md:text-lg mt-4">
+            Synapse helps you create instant quizzes from your notes
+            effortlessly 🪄
+          </p>
+        </div>
         <div
-          className={`
+          {...getRootProps()}
+          className="w-full shadow-2xl max-w-3xl shadow-neutral-950/60"
+        >
+          <input {...getInputProps()} />
+          <div
+            className={`
             relative bg-neutral-800 px-4 py-8 
             transition-all duration-300 cursor-pointer border-2 border-dashed hover:bg-neutral-700 border-neutral-500 hover:border-yellow-300
             ${isDragActive ? "bg-neutral-700 border-yellow-300" : ""}
           `}
-        >
-          <div className="flex items-center justify-center flex-col gap-4">
-            <div className="flex items-center justify-center">
-              <LottieAnimation
-                animationData={UploadLottie}
-                className="invert w-10 md:w-12 md:h-12 h-10"
-              />
-            </div>
+          >
+            <div className="flex items-center justify-center flex-col gap-4">
+              <div className="flex items-center justify-center">
+                <LottieAnimation
+                  animationData={UploadLottie}
+                  className="invert w-10 md:w-12 md:h-12 h-10"
+                />
+              </div>
 
-            <div className="text-center">
-              <p className="text-neutral-50 font-body font-bold md:text-2xl text-xl">
-                {isDragActive
-                  ? "Drop the files here ..."
-                  : "Upload your PDF files"}
-              </p>
+              <div className="text-center">
+                <p className="text-neutral-50 font-body font-bold md:text-2xl text-xl">
+                  {isDragActive
+                    ? "Drop the files here ..."
+                    : "Upload your PDF files"}
+                </p>
 
-              <p className="text-neutral-200 font-body md:text-lg text-center mt-2">
-                Drag and drop your PDF files here or{" "}
-                <span className="text-yellow-300 font-bold">click here</span> to
-                upload
-              </p>
+                <p className="text-neutral-200 font-body md:text-lg text-center mt-2">
+                  Drag and drop your PDF files here or{" "}
+                  <span className="text-yellow-300 font-bold">click here</span>{" "}
+                  to upload
+                </p>
 
-              <p className="text-neutral-400 font-body text-xs md:text-sm text-center mt-2">
-                Up to {config.maxFileSize / (1024 * 1024)}MB each. Maximum{" "}
-                {config.maxFiles} files.
-              </p>
+                <p className="text-neutral-400 font-body text-xs md:text-sm text-center mt-2">
+                  Up to {config.maxFileSize / (1024 * 1024)}MB each. Maximum{" "}
+                  {config.maxFiles} files.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
       <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer">
-        <footer className="fixed bottom-0 left-0 right-0 flex-row gap-x-2 flex items-center z-50 w-full justify-center mb-6 opacity-70 hover:opacity-100 transition-opacity">
+        <div className="flex-row gap-x-2 flex items-center w-full justify-center opacity-70 hover:opacity-100 transition-opacity">
           <p className="font-body text-neutral-50">Powered by</p>
           <img
             src="/openrouter.svg"
             alt="Synapse Logo"
             className="h-10 w-auto object-cover"
           />
-        </footer>
+        </div>
       </a>
     </div>
   );

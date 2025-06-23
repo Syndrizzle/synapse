@@ -1,11 +1,11 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { Home } from "./routes/Home";
 import toast, { Toaster, useToasterStore, ToastBar } from "react-hot-toast";
-import ResponsiveUpload from "./routes/ResponsiveUpload";
 import { useEffect } from "react";
 import { Uploading } from "./routes/Uploading";
 import { Analyzing } from "./routes/Analyzing";
 import { Error } from "./routes/Error";
+import UploadPage from "./routes/Upload";
 
 
 function App() {
@@ -89,7 +89,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/upload" element={<ResponsiveUpload />} />
+          <Route path="/upload" element={<UploadPage />} />
           <Route path="/uploading" element={<Uploading />} />
           <Route path="/analyzing" element={<Analyzing />} />
           <Route path="/error" element={<Error />} />

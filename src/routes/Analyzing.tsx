@@ -1,29 +1,29 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import LottieAnimation from "../components/LottieAnimation";
 import AnalyzingLottie from "../animations/analyze.json";
 import { useFileStore } from "../stores/fileStore";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { config } from "../config/env";
 import toast from "react-hot-toast";
+import { checkQuizStatus } from "../services/api";
 
 export const Analyzing = () => {
   const { quizId, setProcessingStatus } = useFileStore();
   const navigate = useNavigate();
+  const toastShownRef = useRef(false);
 
   useEffect(() => {
     if (!quizId) {
-      toast.error("No active quiz found.");
+      if (!toastShownRef.current) {
+        toast.error("No active quiz found.");
+        toastShownRef.current = true;
+      }
       navigate("/");
       return;
     }
 
     const interval = setInterval(async () => {
       try {
-        const response = await axios.get(
-          `${config.apiBaseUrl}/api/quiz/processing/${quizId}`
-        );
-        const status = response.data.data.status;
+        const status = await checkQuizStatus(quizId);
         setProcessingStatus(status);
 
         if (status === "completed") {
