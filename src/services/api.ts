@@ -40,3 +40,8 @@ export const checkQuizStatus = async (quizId: string) => {
   const response = await api.get(`/api/quiz/processing/${quizId}`);
   return response.data.data.status;
 };
+
+export const checkApiHealth = async () => {
+  const response = await api.get("/health");
+  return response.data;
+};

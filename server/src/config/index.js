@@ -102,6 +102,8 @@ const config = {
         enabled: parseBooleanSafe(process.env.ENABLE_RATE_LIMITING, true),
         requests: parseIntSafe(process.env.RATE_LIMIT_REQUESTS, 100, 1, 1000), // requests per window
         windowMinutes: parseIntSafe(process.env.RATE_LIMIT_WINDOW_MINUTES, 15, 1, 60), // window in minutes
+        authorizedRequests: parseIntSafe(process.env.RATE_LIMIT_REQUESTS_AUTHORIZED, 1000, 1, 10000),
+        authorizedWindowMinutes: parseIntSafe(process.env.RATE_LIMIT_WINDOW_MINUTES_AUTHORIZED, 1, 1, 60),
     },
 
     // =================================================================
@@ -109,6 +111,7 @@ const config = {
     // =================================================================
     security: {
         corsOrigins: parseListSafe(process.env.CORS_ORIGINS, ['http://localhost:3000', 'http://localhost:5173']),
+        authorizedDomains: parseListSafe(process.env.AUTHORIZED_DOMAINS, []),
         maxRequestSize: process.env.MAX_REQUEST_SIZE || '10mb',
     },
 
@@ -177,6 +180,8 @@ export const logConfig = () => {
         console.log(`   Quiz: ${config.quiz.minQuestions}-${config.quiz.maxQuestions} questions (dynamic based on content)`);
         console.log(`   Max File Size: ${(config.upload.maxFileSize / 1024 / 1024).toFixed(1)}MB`);
         console.log(`   CORS Origins: ${config.security.corsOrigins.join(', ')}`);
+        console.log(`   Allowed Domains: ${config.security.authorizedDomains.join(', ')}`);
+
     }
 };
 

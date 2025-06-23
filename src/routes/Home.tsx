@@ -5,12 +5,37 @@ import { useDropzone, type FileRejection } from "react-dropzone";
 import { useNavigate } from "react-router-dom";
 import { useFileStore } from "../stores/fileStore";
 import { generateThumbnail } from "../lib/pdf";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { checkApiHealth } from "../services/api";
+import { siGithub } from "simple-icons";
 
 export const Home = () => {
   const navigate = useNavigate();
   const { files, addFiles } = useFileStore();
+  const [apiStatus, setApiStatus] = useState<"healthy" | "unhealthy">(
+    "healthy"
+  );
+
+  useEffect(() => {
+    const healthCheck = async () => {
+      try {
+        const data = await checkApiHealth();
+        if (data.status === "healthy") {
+          setApiStatus("healthy");
+        } else {
+          setApiStatus("unhealthy");
+        }
+      } catch {
+        setApiStatus("unhealthy");
+      }
+    };
+
+    healthCheck();
+    const intervalId = setInterval(healthCheck, 10000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -120,16 +145,48 @@ export const Home = () => {
           </div>
         </div>
       </div>
-      <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer">
-        <div className="flex-row gap-x-2 flex items-center w-full justify-center opacity-70 hover:opacity-100 transition-opacity">
-          <p className="font-body text-neutral-50">Powered by</p>
-          <img
-            src="/openrouter.svg"
-            alt="Synapse Logo"
-            className="h-10 w-auto object-cover"
-          />
+      <div className="flex items-center justify-center gap-4">
+        <a href="https://github.com/Syndrizzle/synapse">
+          <div className="flex flex-row gap-x-2 items-center px-3 py-1 rounded bg-neutral-800 hover:bg-neutral-700 transition-colors duration-300 group">
+            <svg
+              viewBox="0 0 24 24"
+              role="img"
+              className="md:w-5 md:h-5 w-4 h-4 fill-neutral-400 group-hover:fill-neutral-50 transition-colors duration-300"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d={siGithub.path} />
+            </svg>
+            <p className="text-neutral-400 group-hover:text-neutral-50 transition-colors duration-300 font-body md:text-base text-sm">
+              Github
+            </p>
+          </div>
+        </a>
+        <div
+          className={`flex items-center gap-x-2 px-4 py-1 rounded ${
+            apiStatus === "healthy" ? "bg-green-500/20" : "bg-red-500/20"
+          }`}
+        >
+          <div className="relative w-4 h-4 flex items-center justify-center">
+            <div
+              className={`absolute w-2.5 h-2.5 rounded-full animate-ping ${
+                apiStatus === "healthy" ? "bg-green-500" : "bg-red-500"
+              }`}
+            />
+            <div
+              className={`w-1.5 h-1.5 rounded-full ${
+                apiStatus === "healthy" ? "bg-green-500" : "bg-red-500"
+              }`}
+            />
+          </div>
+          <p
+            className={`text-sm md:text-base font-body ${
+              apiStatus === "healthy" ? "text-green-400" : "text-red-400"
+            }`}
+          >
+            {apiStatus === "healthy" ? "Online" : "Offline"}
+          </p>
         </div>
-      </a>
+      </div>
     </div>
   );
 };

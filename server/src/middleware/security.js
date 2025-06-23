@@ -49,9 +49,14 @@ export const configureCORS = () => {
         origin: (origin, callback) => {
             // Allow requests with no origin (mobile apps, etc.)
             if (!origin) return callback(null, true);
-            
+
+            const allowedOrigins = [
+                ...config.security.corsOrigins,
+                ...config.security.authorizedDomains,
+            ];
+
             // Check if origin is in allowed list
-            if (config.security.corsOrigins.includes(origin) || config.security.corsOrigins.includes('*')) {
+            if (allowedOrigins.includes(origin) || config.security.corsOrigins.includes('*')) {
                 return callback(null, true);
             }
             

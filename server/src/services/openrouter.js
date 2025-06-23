@@ -203,9 +203,8 @@ Generate a quiz that follows the structured output format with the required fiel
 
             const data = await response.json();
 
-            // Log full API response in development mode
             if (config.development.debugMode) {
-                logger.debug('Full OpenRouter API response:', JSON.stringify(data, null, 2));
+                logger.debug('Full OpenRouter API response:', data);
             }
 
             if (!data.choices || !data.choices[0] || !data.choices[0].message) {
