@@ -1,9 +1,15 @@
 import LottieAnimation from "../components/LottieAnimation";
 import UploadingLottie from "../animations/uploading.json";
 import { useFileStore } from "../stores/fileStore";
+import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export const Uploading = () => {
   const uploadSpeed = useFileStore((state) => state.uploadSpeed);
+  const { quizId } = useFileStore();
+  const navigate = useNavigate();
+  const toastShownRef = useRef(false);
 
   const formatSpeed = (speedInKB: number) => {
     if (speedInKB < 1024) {
@@ -12,7 +18,16 @@ export const Uploading = () => {
       return `${(speedInKB / 1024).toFixed(2)} MB/s`;
     }
   };
-
+  useEffect(() => {
+    if (!quizId) {
+      if (!toastShownRef.current) {
+        toast.error("No files found to upload.");
+        toastShownRef.current = true;
+      }
+      navigate("/");
+      return;
+    }
+  }, [quizId, navigate]);
   return (
     <div className="bg-neutral-900 min-h-screen flex flex-col items-center justify-center p-8 gap-4">
       <header className="fixed top-0 left-0 right-0  flex items-center z-50 w-full justify-center mt-12">
