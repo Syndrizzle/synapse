@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { config } from "../config/env";
 
 export interface FileData {
   id: string;
@@ -8,9 +7,15 @@ export interface FileData {
 }
 
 interface FileState {
+  // Upload capacity (will be populated from server /health)
+  maxFiles: number;
+  maxFileSize: number;
+  allowedFileTypes: string[];
+  capacityLoaded: boolean;
   files: FileData[];
   quizId: string | null;
   uploadSpeed: number; // in KB/s
+  setUploadConfig: (cfg: { maxFiles: number; maxFileSize: number; allowedFileTypes: string[] }) => void;
   processingStatus: string | null;
   addFiles: (files: FileData[]) => void;
   removeFile: (id: string) => void;
@@ -21,6 +26,11 @@ interface FileState {
 }
 
 export const useFileStore = create<FileState>((set) => ({
+  // Default values will be overridden once /health completes
+  maxFiles: 5,
+  maxFileSize: 10485760,
+  allowedFileTypes: ["application/pdf"],
+  capacityLoaded: false,
   files: [],
   quizId: null,
   uploadSpeed: 0,
@@ -34,10 +44,10 @@ export const useFileStore = create<FileState>((set) => ({
         }
       );
       return {
-        files: uniqueFiles.slice(0, config.maxFiles),
-      };
+        files: uniqueFiles.slice(0, state.maxFiles),
+      } as Partial<FileState>;
     }),
-  removeFile: (id) =>
+  removeFile: (id: string) =>
     set((state) => ({
       files: state.files.filter((file) => file.id !== id),
     })),
@@ -45,4 +55,5 @@ export const useFileStore = create<FileState>((set) => ({
   setQuizId: (quizId) => set({ quizId }),
   setUploadSpeed: (speed) => set({ uploadSpeed: speed }),
   setProcessingStatus: (status) => set({ processingStatus: status }),
+  setUploadConfig: (cfg) => set({ ...cfg, capacityLoaded: true }),
 }));

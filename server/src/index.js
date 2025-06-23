@@ -109,34 +109,51 @@ function setupRoutes() {
     if (config.monitoring.enableHealthCheck) {
         app.get(config.monitoring.healthCheckPath, async (req, res) => {
             try {
+                // Base health payload
                 const healthStatus = {
                     status: 'healthy',
                     timestamp: new Date().toISOString(),
                     uptime: process.uptime(),
-                    environment: config.server.nodeEnv,
                     version: process.env.npm_package_version || '1.0.0',
                 };
 
-                // Check Redis health
-                if (redisService.isReady()) {
+                // Always expose upload capacity so that the frontend can adapt automatically
+                healthStatus.capacity = {
+                    maxFileSize: config.upload.maxFileSize,
+                    maxFiles: config.upload.maxFilesCount,
+                    allowedFileTypes: config.upload.allowedFileTypes,
+                };
+
+                // Only expose additional diagnostic information when NOT in production
+                if (!config.server.isProduction) {
+                    healthStatus.environment = config.server.nodeEnv;
+                }
+
+
+                // Check Redis health (only include detailed info outside production)
+                if (!config.server.isProduction && redisService.isReady()) {
                     const redisHealth = await redisService.healthCheck();
                     healthStatus.redis = redisHealth;
-                } else {
+                } else if (!config.server.isProduction) {
                     healthStatus.redis = {
                         status: 'disconnected',
                         connected: false,
                     };
                 }
 
-                // Check OpenRouter configuration
-                healthStatus.openrouter = {
-                    configured: !!config.openrouter.apiKey && config.openrouter.apiKey !== 'your_openrouter_api_key_here',
-                    model: config.openrouter.model,
-                    baseUrl: config.openrouter.baseUrl,
-                };
+                // Include OpenRouter diagnostic data only outside production
+                if (!config.server.isProduction) {
+                    healthStatus.openrouter = {
+                        configured: !!config.openrouter.apiKey && config.openrouter.apiKey !== 'your_openrouter_api_key_here',
+                        model: config.openrouter.model,
+                        baseUrl: config.openrouter.baseUrl,
+                    };
+                }
 
-                // Check OpenRouter service status
-                healthStatus.openrouterService = openRouterService.getStatus();
+                // Check OpenRouter service status only outside production
+                if (!config.server.isProduction) {
+                    healthStatus.openrouterService = openRouterService.getStatus();
+                }
 
                 res.status(200).json(healthStatus);
             } catch (error) {

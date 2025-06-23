@@ -86,9 +86,11 @@ const UploadPage = () => {
   if (isMobile) {
     return (
       <>
-        <div className="bg-neutral-900 min-h-screen flex-col px-6 py-10 flex gap-6 pb-40">
+        <div className="bg-neutral-900 h-screen flex flex-col px-6 py-10 gap-6 pb-40">
           {headerContent}
-          <UploadArea />
+          <div className="flex-grow min-h-0">
+            <UploadArea />
+          </div>
         </div>
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-neutral-900 border-t border-neutral-800 flex flex-col gap-4">
           {actionButtons}

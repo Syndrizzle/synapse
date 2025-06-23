@@ -3,12 +3,20 @@ import { FileCard } from "./FileCard";
 import { useDropzone, type FileRejection } from "react-dropzone";
 import { useCallback } from "react";
 import { generateThumbnail } from "../lib/pdf";
-import { config } from "../config/env";
-import { CirclePlus, Upload } from "lucide-react";
+import { CirclePlus, Upload, Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import { checkApiHealth } from "../services/api";
 import toast from "react-hot-toast";
 
 export const UploadArea = () => {
-  const { files, addFiles } = useFileStore();
+  const { files, addFiles, maxFiles, maxFileSize, allowedFileTypes, capacityLoaded } = useFileStore();
+
+  // Ensure capacity is fetched if user landed directly on /upload
+  useEffect(() => {
+    if (!capacityLoaded) {
+      checkApiHealth();
+    }
+  }, [capacityLoaded]);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -17,7 +25,7 @@ export const UploadArea = () => {
           if (error.code === "file-too-large") {
             toast.error(
               `File "${file.name}" is too large. Max size is ${
-                config.maxFileSize / (1024 * 1024)
+                maxFileSize / (1024 * 1024)
               }MB.`
             );
           } else {
@@ -26,14 +34,20 @@ export const UploadArea = () => {
         });
       });
 
+      // Remove files that already exist (duplicate drag)
+      const existingIds = new Set(files.map((f) => f.id));
+      const uniqueIncoming = acceptedFiles.filter(
+        (file) => !existingIds.has(`${file.name}-${file.lastModified}`)
+      );
+
       const currentFileCount = files.length;
-      const remainingSlots = config.maxFiles - currentFileCount;
-      const filesToAccept = acceptedFiles.slice(0, remainingSlots);
-      const rejectedCount = acceptedFiles.length - filesToAccept.length;
+      const remainingSlots = maxFiles - currentFileCount;
+      const filesToAccept = uniqueIncoming.slice(0, remainingSlots);
+      const rejectedCount = uniqueIncoming.length - filesToAccept.length;
 
       if (rejectedCount > 0) {
         toast.error(
-          `${rejectedCount} file(s) were not accepted because the maximum of ${config.maxFiles} files has been reached.`
+          `${rejectedCount} file(s) were not accepted because the maximum of ${maxFiles} files has been reached.`
         );
       }
 
@@ -50,32 +64,24 @@ export const UploadArea = () => {
       const fileData = await Promise.all(fileDataPromises);
       addFiles(fileData);
     },
-    [files, addFiles]
+    [files, addFiles, maxFileSize, maxFiles]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "application/pdf": [".pdf"] },
-    maxSize: config.maxFileSize,
-    disabled: files.length >= config.maxFiles,
+    accept: capacityLoaded
+      ? allowedFileTypes.reduce((acc, type) => ({ ...acc, [type]: [`.${type.split('/')[1]}`] }), {})
+      : {},
+    maxSize: maxFileSize,
+    disabled: !capacityLoaded || files.length >= maxFiles,
   });
 
-  const remainingFiles = config.maxFiles - files.length;
+  const remainingFiles = capacityLoaded ? maxFiles - files.length : 0;
 
   return (
     <div
       {...getRootProps()}
-      className={`bg-neutral-800 border-2 border-dashed border-neutral-500 w-full h-full gap-6 p-4 shadow-2xl shadow-neutral-950/60 transition-colors duration-300 ${
-        isDragActive ? "border-yellow-300 bg-neutral-700" : ""
-      } ${
-        files.length > 0
-          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2"
-          : "flex items-center justify-center"
-      } ${
-        files.length >= config.maxFiles
-          ? "cursor-not-allowed"
-          : "cursor-pointer"
-      }`}
+      className={`bg-neutral-800 border-2 border-dashed border-neutral-500 w-full h-full gap-6 p-4 shadow-2xl shadow-neutral-950/60 transition-colors duration-300 overflow-y-auto ${isDragActive ? "border-yellow-300 bg-neutral-700" : ""} ${files.length > 0 ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "flex items-center justify-center"} ${files.length < 7 ? "md:grid-rows-2" : ""} ${files.length >= maxFiles ? "cursor-not-allowed" : "cursor-pointer"}`}
     >
       <input {...getInputProps()} />
 
@@ -84,7 +90,7 @@ export const UploadArea = () => {
           {files.map((fileData) => (
             <FileCard key={fileData.id} fileData={fileData} />
           ))}
-          {files.length < config.maxFiles && (
+          {files.length < maxFiles && (
             <div className="md:hidden flex items-center justify-center text-neutral-400 font-body md:text-3xl text-xl text-center border-dashed border-neutral-500 p-2 border-2 gap-4">
               <CirclePlus className="w-5 h-5"/>
               Add more files
@@ -100,7 +106,12 @@ export const UploadArea = () => {
               : "Drag & drop or click to upload"}
           </p>
           <p className="text-neutral-400 font-body text-center">
-            {remainingFiles > 0
+            {!capacityLoaded ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin inline-block mr-1" />
+                Fetching upload limits...
+              </>
+            ) : remainingFiles > 0
               ? `You can add up to ${remainingFiles} more files.`
               : "You have reached the maximum number of files."}
           </p>

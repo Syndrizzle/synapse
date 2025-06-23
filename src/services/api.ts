@@ -43,5 +43,10 @@ export const checkQuizStatus = async (quizId: string) => {
 
 export const checkApiHealth = async () => {
   const response = await api.get("/health");
+  // If the backend sends capacity, update the store so the whole app reacts
+  if (response.data && response.data.capacity) {
+    const { maxFiles, maxFileSize, allowedFileTypes } = response.data.capacity;
+    useFileStore.getState().setUploadConfig({ maxFiles, maxFileSize, allowedFileTypes });
+  }
   return response.data;
 };

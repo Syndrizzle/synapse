@@ -1,23 +1,27 @@
 import LottieAnimation from "../components/LottieAnimation";
 import UploadLottie from "../animations/upload.json";
-import { config } from "../config/env";
 import { useDropzone, type FileRejection } from "react-dropzone";
 import { useNavigate } from "react-router-dom";
 import { useFileStore } from "../stores/fileStore";
 import { generateThumbnail } from "../lib/pdf";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { checkApiHealth } from "../services/api";
 import { siGithub } from "simple-icons";
+import { Loader2 } from "lucide-react";
 
 export const Home = () => {
   const navigate = useNavigate();
-  const { files, addFiles } = useFileStore();
-  const [apiStatus, setApiStatus] = useState<"healthy" | "unhealthy">(
-    "healthy"
+  const { files, addFiles, maxFiles, maxFileSize, allowedFileTypes, capacityLoaded } = useFileStore();
+  const [apiStatus, setApiStatus] = useState<"healthy" | "unhealthy" | "loading">(
+    "loading"
   );
 
+  const initializedRef = useRef(false);
+
   useEffect(() => {
+    if (initializedRef.current) return; // Avoid double execution in React 18 StrictMode during development
+    initializedRef.current = true;
     const healthCheck = async () => {
       try {
         const data = await checkApiHealth();
@@ -44,7 +48,7 @@ export const Home = () => {
           if (error.code === "file-too-large") {
             toast.error(
               `File "${file.name}" is too large. Max size is ${
-                config.maxFileSize / (1024 * 1024)
+                maxFileSize / (1024 * 1024)
               }MB.`
             );
           } else {
@@ -53,14 +57,20 @@ export const Home = () => {
         });
       });
 
-      const currentFileCount = files.length;
-      const remainingSlots = config.maxFiles - currentFileCount;
-      const filesToAccept = acceptedFiles.slice(0, remainingSlots);
-      const rejectedCount = acceptedFiles.length - filesToAccept.length;
+
+      // Ignore duplicates first
+      const existingIds = new Set(files.map((f) => f.id));
+      const uniqueIncoming = acceptedFiles.filter(
+        (file) => !existingIds.has(`${file.name}-${file.lastModified}`)
+      );
+
+      const remainingFiles = maxFiles - files.length;
+      const filesToAccept = uniqueIncoming.slice(0, remainingFiles);
+      const rejectedCount = uniqueIncoming.length - filesToAccept.length;
 
       if (rejectedCount > 0) {
         toast.error(
-          `${rejectedCount} file(s) were not accepted because the maximum of ${config.maxFiles} files has been reached.`
+          `${rejectedCount} file(s) were not accepted because the maximum of ${maxFiles} files has been reached.`
         );
       }
 
@@ -78,14 +88,17 @@ export const Home = () => {
       addFiles(fileData);
       navigate("/upload");
     },
-    [files, addFiles, navigate]
+    [files, addFiles, maxFiles, maxFileSize, navigate]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "application/pdf": [".pdf"] },
-    maxSize: config.maxFileSize,
-    disabled: files.length >= config.maxFiles,
+    accept: capacityLoaded ? allowedFileTypes.reduce<Record<string, string[]>>((acc, type) => {
+      acc[type] = [`.${type.split('/')[1]}`];
+      return acc;
+    }, {}) : {},
+    maxSize: maxFileSize,
+    disabled: !capacityLoaded || files.length >= maxFiles,
   });
 
   return (
@@ -137,8 +150,7 @@ export const Home = () => {
                 </p>
 
                 <p className="text-neutral-400 font-body text-xs md:text-sm text-center mt-2">
-                  Up to {config.maxFileSize / (1024 * 1024)}MB each. Maximum{" "}
-                  {config.maxFiles} files.
+                  {capacityLoaded ? `Up to ${maxFileSize / (1024 * 1024)}MB each. Maximum ${maxFiles} files.` : (<><Loader2 className="w-4 h-4 animate-spin inline-block mr-1"/>Fetching upload limits...</>)}
                 </p>
               </div>
             </div>
@@ -163,27 +175,43 @@ export const Home = () => {
         </a>
         <div
           className={`flex items-center gap-x-2 px-4 py-1 rounded ${
-            apiStatus === "healthy" ? "bg-green-500/20" : "bg-red-500/20"
+            apiStatus === "loading"
+              ? "bg-neutral-800"
+              : apiStatus === "healthy"
+              ? "bg-green-500/20"
+              : "bg-red-500/20"
           }`}
         >
-          <div className="relative w-4 h-4 flex items-center justify-center">
-            <div
-              className={`absolute w-2.5 h-2.5 rounded-full animate-ping ${
-                apiStatus === "healthy" ? "bg-green-500" : "bg-red-500"
-              }`}
-            />
-            <div
-              className={`w-1.5 h-1.5 rounded-full ${
-                apiStatus === "healthy" ? "bg-green-500" : "bg-red-500"
-              }`}
-            />
-          </div>
+          {apiStatus === "loading" ? (
+            <Loader2 className="w-4 h-4 animate-spin text-neutral-400" />
+          ) : (
+            <div className="relative w-4 h-4 flex items-center justify-center">
+              <div
+                className={`absolute w-2.5 h-2.5 rounded-full animate-ping ${
+                  apiStatus === "healthy" ? "bg-green-500" : "bg-red-500"
+                }`}
+              />
+              <div
+                className={`w-1.5 h-1.5 rounded-full ${
+                  apiStatus === "healthy" ? "bg-green-500" : "bg-red-500"
+                }`}
+              />
+            </div>
+          )}
           <p
             className={`text-sm md:text-base font-body ${
-              apiStatus === "healthy" ? "text-green-400" : "text-red-400"
+              apiStatus === "loading"
+                ? "text-neutral-400"
+                : apiStatus === "healthy"
+                ? "text-green-400"
+                : "text-red-400"
             }`}
           >
-            {apiStatus === "healthy" ? "Online" : "Offline"}
+            {apiStatus === "loading"
+              ? "Checking..."
+              : apiStatus === "healthy"
+              ? "Online"
+              : "Offline"}
           </p>
         </div>
       </div>
