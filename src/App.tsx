@@ -7,6 +7,7 @@ import { Analyzing } from "./routes/Analyzing";
 import { Error } from "./routes/Error";
 import UploadPage from "./routes/Upload";
 import { QuizStart } from "./routes/Quiz/QuizStart";
+import { QuizOngoingPage } from "./routes/Quiz/QuizOngoing";
 
 
 function App() {
@@ -95,6 +96,7 @@ function App() {
           <Route path="/analyzing" element={<Analyzing />} />
           <Route path="/error" element={<Error />} />
           <Route path="/quiz/onboarding/:quizId" element={<QuizStart />} />
+          <Route path="/quiz/ongoing" element={<QuizOngoingPage />} />
         </Routes>
       </Router>
     </>
