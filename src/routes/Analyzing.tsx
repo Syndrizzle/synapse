@@ -29,8 +29,7 @@ export const Analyzing = () => {
         if (status === "completed") {
           clearInterval(interval);
           toast.success("Quiz generated successfully!");
-          // TODO: Navigate to the quiz page, e.g., /quiz/${quizId}
-          console.log("Quiz ready! Navigating next...");
+          navigate(`/quiz/onboarding/${quizId}`);
         } else if (status === "failed") {
           clearInterval(interval);
           toast.error("Failed to generate quiz.");

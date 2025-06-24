@@ -41,6 +41,11 @@ export const checkQuizStatus = async (quizId: string) => {
   return response.data.data.status;
 };
 
+export const getQuiz = async (quizId: string) => {
+  const response = await api.get(`/api/quiz/${quizId}`);
+  return response.data;
+};
+
 export const checkApiHealth = async () => {
   const response = await api.get("/health");
   // If the backend sends capacity, update the store so the whole app reacts

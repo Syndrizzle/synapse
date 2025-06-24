@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 
 export const Uploading = () => {
   const uploadSpeed = useFileStore((state) => state.uploadSpeed);
-  const { quizId } = useFileStore();
+  const { files } = useFileStore();
   const navigate = useNavigate();
   const toastShownRef = useRef(false);
 
@@ -19,7 +19,7 @@ export const Uploading = () => {
     }
   };
   useEffect(() => {
-    if (!quizId) {
+    if (!files.length) {
       if (!toastShownRef.current) {
         toast.error("No files found to upload.");
         toastShownRef.current = true;
@@ -27,7 +27,7 @@ export const Uploading = () => {
       navigate("/");
       return;
     }
-  }, [quizId, navigate]);
+  }, [files.length, navigate]);
   return (
     <div className="bg-neutral-900 min-h-screen flex flex-col items-center justify-center p-8 gap-4">
       <header className="fixed top-0 left-0 right-0  flex items-center z-50 w-full justify-center mt-12">

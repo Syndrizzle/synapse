@@ -187,7 +187,7 @@ Generate a quiz that follows the structured output format with the required fiel
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                
+
                 // Log error response in development mode
                 if (config.development.debugMode) {
                     logger.error('OpenRouter API error response:', {
@@ -197,7 +197,7 @@ Generate a quiz that follows the structured output format with the required fiel
                         errorData: errorData
                     });
                 }
-                
+
                 throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
             }
 
@@ -217,7 +217,7 @@ Generate a quiz that follows the structured output format with the required fiel
             let parsedContent;
 
             if (config.development.debugMode) {
-                logger.debug(`Raw OpenRouter response: ${responseContent.substring(0, 500)}...`);
+                logger.debug(`Raw OpenRouter response: ${responseContent}`);
             }
 
             try {
