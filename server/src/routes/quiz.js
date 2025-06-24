@@ -190,7 +190,7 @@ router.get('/:quizId', async (req, res) => {
 router.post('/:quizId/submit', getRateLimiter(), async (req, res) => {
     try {
         const { quizId } = req.params;
-        const { answers } = req.body;
+        const { answers, timeTaken } = req.body;
 
         // Validate inputs
         if (!quizId || !answers || !Array.isArray(answers)) {
@@ -247,7 +247,7 @@ router.post('/:quizId/submit', getRateLimiter(), async (req, res) => {
             incorrectAnswers: 0,
             score: 0,
             percentage: 0,
-            timeTaken: null, // Could be calculated if we track start time
+            timeTaken: timeTaken || null,
             questionResults: [],
         };
 

@@ -41,6 +41,11 @@ export const checkQuizStatus = async (quizId: string) => {
   return response.data.data.status;
 };
 
+export const submitQuiz = async (quizId: string, answers: (number | null)[], timeTaken: number) => {
+  const response = await api.post(`/api/quiz/${quizId}/submit`, { answers, timeTaken });
+  return response.data;
+};
+
 export const getQuiz = async (quizId: string) => {
   const response = await api.get(`/api/quiz/${quizId}`);
   return response.data;

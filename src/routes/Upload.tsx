@@ -49,14 +49,14 @@ const UploadPage = () => {
   };
 
   const headerContent = (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <img
         src="/logo.svg"
         alt=" Synapse Logo"
-        className={isMobile ? "w-1/2 h-14" : "w-2/3 h-14"}
+        className="lg:w-2/3 lg:h-12 md:w-full w-1/2"
       />
       <div className="flex flex-col gap-2">
-        <p className="font-heading text-4xl text-neutral-50">
+        <p className="font-heading lg:text-5xl text-3xl text-neutral-50 my-2">
           Review Your Files
         </p>
         <p className="text-neutral-300 text-lg font-body">
@@ -86,9 +86,9 @@ const UploadPage = () => {
   if (isMobile) {
     return (
       <>
-        <div className="bg-neutral-900 h-screen flex flex-col px-6 py-10 gap-6 pb-40">
+        <div className="bg-neutral-900 h-screen flex flex-col px-6 py-10 gap-6">
           {headerContent}
-          <div className="flex-grow min-h-0">
+          <div className="flex-grow pb-40">
             <UploadArea />
           </div>
         </div>
@@ -100,11 +100,11 @@ const UploadPage = () => {
   }
 
   return (
-    <div className="bg-neutral-900 h-screen p-6 flex gap-6">
+    <div className="bg-neutral-900 h-screen lg:p-6 p-4 flex gap-6">
       <UploadArea />
-      <div className="flex flex-col w-1/3 justify-between">
-        <div className="p-6">{headerContent}</div>
-        <div className="w-full flex flex-col gap-4 px-2">{actionButtons}</div>
+      <div className="flex flex-col lg:w-1/3 w-2/5 justify-between">
+        <div className="lg:p-4 p-4">{headerContent}</div>
+        <div className="w-full flex flex-col gap-2 px-2">{actionButtons}</div>
       </div>
     </div>
   );

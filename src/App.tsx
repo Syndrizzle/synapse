@@ -96,7 +96,7 @@ function App() {
           <Route path="/analyzing" element={<Analyzing />} />
           <Route path="/error" element={<Error />} />
           <Route path="/quiz/onboarding/:quizId" element={<QuizStart />} />
-          <Route path="/quiz/ongoing" element={<QuizOngoingPage />} />
+          <Route path="/quiz/:quizId" element={<QuizOngoingPage />} />
         </Routes>
       </Router>
     </>
