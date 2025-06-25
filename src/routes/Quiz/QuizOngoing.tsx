@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, Check, Clock, LoaderCircle } from "lucide-react"
 import { QuizArea } from "../../components/QuizArea";
 import { QuizNav } from "../../components/QuizNav";
 import { useIsMobile } from "../../hooks/useIsMobile";
-import { getQuiz, submitQuiz } from "../../services/api";
+import { getQuiz, submitQuiz, getQuizResults } from "../../services/api";
 
 interface Question {
   id: string;
@@ -40,6 +40,18 @@ export const QuizOngoingPage = () => {
 
     const fetchQuiz = async () => {
       try {
+        // First check if quiz is already submitted
+        try {
+          const resultsResponse = await getQuizResults(quizId);
+          if (resultsResponse.success) {
+            // Quiz already submitted, redirect to already submitted page
+            navigate(`/quiz/${quizId}/already-submitted`);
+            return;
+          }
+        } catch {
+          // Results not found, quiz not submitted yet - continue
+        }
+
         const response = await getQuiz(quizId);
         if (response.success) {
           setQuizData(response.data);
@@ -109,8 +121,7 @@ export const QuizOngoingPage = () => {
       try {
         await submitQuiz(quizId, answers, elapsedTime);
         toast.success("Quiz submitted successfully!");
-        // TODO: Navigate to a results page
-        navigate("/");
+        navigate(`/quiz/${quizId}/results`);
       } catch {
         toast.error("Failed to submit quiz.");
       }

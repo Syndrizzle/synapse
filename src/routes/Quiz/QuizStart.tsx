@@ -4,7 +4,7 @@ import LottieAnimation from "../../components/LottieAnimation";
 import SuccessLottie from "../../animations/success.json";
 import { ArrowLeft, ArrowRight, LoaderCircle } from "lucide-react";
 import { Button } from "../../components/Button";
-import { getQuiz } from "../../services/api";
+import { getQuiz, getQuizResults } from "../../services/api";
 import { useFileStore } from "../../stores/fileStore";
 import toast from "react-hot-toast";
 
@@ -157,7 +157,24 @@ export const QuizStart = () => {
         <Button
           size="lg"
           className="text-xl"
-          onClick={() => navigate(`/quiz/${quizId}`)}
+          onClick={async () => {
+            if (!quizId) return;
+            
+            try {
+              // Check if quiz is already submitted by trying to get results
+              const resultsResponse = await getQuizResults(quizId);
+              if (resultsResponse.success) {
+                // Quiz already submitted, redirect to already submitted page
+                navigate(`/quiz/${quizId}/already-submitted`);
+                return;
+              }
+            } catch {
+              // Results not found, quiz not submitted yet - continue to quiz
+            }
+            
+            // Quiz not submitted, start the quiz
+            navigate(`/quiz/${quizId}`);
+          }}
         >
           <ArrowRight className="w-6 h-6" strokeWidth={2.5} />
           Start Quiz

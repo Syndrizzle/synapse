@@ -1,109 +1,41 @@
 import { Button } from "./Button";
 
-export const ResultsNav = () => {
+interface QuestionResult {
+  questionId: string;
+  userAnswer: number;
+  correctAnswer: number;
+  isCorrect: boolean;
+  question: string;
+  options: string[];
+  explanation: string;
+  topic: string;
+}
+
+interface ResultsNavProps {
+  questionResults: QuestionResult[];
+  selectedQuestionIndex: number;
+  onQuestionSelect: (index: number) => void;
+}
+
+export const ResultsNav = ({ questionResults, selectedQuestionIndex, onQuestionSelect }: ResultsNavProps) => {
   return (
     <div className="grid lg:grid-cols-5 md:grid-cols-4 grid-cols-5 items-center justify-center gap-2">
-      <Button className="flex items-center justify-center" size={"lg"}>
-        1.
-      </Button>
-      <Button
-        className="flex items-center justify-center"
-        size={"lg"}
-        variant={"outline"}
-      >
-        2.
-      </Button>
-      <Button
-        className="flex items-center justify-center"
-        size={"lg"}
-        variant={"destructive"}
-      >
-        3.
-      </Button>
-      <Button
-        className="flex items-center justify-center"
-        size={"lg"}
-        variant={"destructive"}
-      >
-        4.
-      </Button>
-      <Button
-        className="flex items-center justify-center"
-        size={"lg"}
-        variant={"outline"}
-      >
-        5.
-      </Button>
-      <Button
-        className="flex items-center justify-center"
-        size={"lg"}
-        variant={"outline"}
-      >
-        6.
-      </Button>
-      <Button
-        className="flex items-center justify-center"
-        size={"lg"}
-        variant={"destructive"}
-      >
-        7.
-      </Button>
-      <Button
-        className="flex items-center justify-center"
-        size={"lg"}
-        variant={"outline"}
-      >
-        8.
-      </Button>
-      <Button
-        className="flex items-center justify-center"
-        size={"lg"}
-        variant={"outline"}
-      >
-        9.
-      </Button>
-      <Button
-        className="flex items-center justify-center"
-        size={"lg"}
-        variant={"outline"}
-      >
-        10.
-      </Button>
-      <Button
-        className="flex items-center justify-center"
-        size={"lg"}
-        variant={"outline"}
-      >
-        11.
-      </Button>
-      <Button
-        className="flex items-center justify-center"
-        size={"lg"}
-        variant={"outline"}
-      >
-        12.
-      </Button>
-      <Button
-        className="flex items-center justify-center"
-        size={"lg"}
-        variant={"destructive"}
-      >
-        13.
-      </Button>
-      <Button
-        className="flex items-center justify-center"
-        size={"lg"}
-        variant={"outline"}
-      >
-        14.
-      </Button>
-      <Button
-        className="flex items-center justify-center"
-        size={"lg"}
-        variant={"outline"}
-      >
-        15.
-      </Button>
+      {questionResults.map((result, index) => {
+        const isSelected = index === selectedQuestionIndex;
+        const variant = isSelected ? "default" : result.isCorrect ? "outline" : "destructive";
+        
+        return (
+          <Button 
+            key={result.questionId}
+            className="flex items-center justify-center" 
+            size={"lg"}
+            variant={variant}
+            onClick={() => onQuestionSelect(index)}
+          >
+            {index + 1}.
+          </Button>
+        );
+      })}
     </div>
   );
 }

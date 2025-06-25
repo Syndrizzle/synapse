@@ -9,6 +9,7 @@ import UploadPage from "./routes/Upload";
 import { QuizStart } from "./routes/Quiz/QuizStart";
 import { QuizOngoingPage } from "./routes/Quiz/QuizOngoing";
 import { QuizResults } from "./routes/Quiz/QuizResults";
+import { QuizAlreadySubmitted } from "./routes/Quiz/QuizAlreadySubmitted";
 
 
 function App() {
@@ -97,8 +98,9 @@ function App() {
           <Route path="/analyzing" element={<Analyzing />} />
           <Route path="/error" element={<Error />} />
           <Route path="/quiz/onboarding/:quizId" element={<QuizStart />} />
-          <Route path="/quiz/results" element={<QuizResults />} />
+          <Route path="/quiz/:quizId/results" element={<QuizResults />} />
           <Route path="/quiz/:quizId" element={<QuizOngoingPage />} />
+          <Route path="/quiz/:quizId/already-submitted" element={<QuizAlreadySubmitted />} />
         </Routes>
       </Router>
     </>
