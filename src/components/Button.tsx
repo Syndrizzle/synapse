@@ -11,17 +11,18 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-yellow-300 hover:bg-yellow-400 text-neutral-900 border-2 border-black",
+          "bg-yellow-300 hover:bg-yellow-400 text-neutral-900 border-2 border-yellow-400 inset-shadow-sm inset-shadow-yellow-700",
         destructive:
-          "bg-red-400 text-neutral-900 border-2 border-black hover:bg-red-500",
-        outlineyellow: "bg-neutral-800 text-yellow-500 border-2 border-yellow-500",
+          "bg-red-400 text-neutral-900 border-2 border-red-500 hover:bg-red-500 inset-shadow-sm inset-shadow-red-800",
+        outlineyellow:
+          "bg-neutral-800 text-yellow-500 border-2 border-yellow-500",
         outline:
-          "bg-neutral-800 text-neutral-50 border-2 border-neutral-500 hover:border-yellow-400"
+          "bg-neutral-800 text-neutral-50 border-2 border-neutral-500 hover:border-yellow-400",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
         sm: "h-8 gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-12 px-6 has-[>svg]:px-4",
+        lg: "h-12 px-6 has-[>svg]:px-4 text-lg",
         icon: "size-9",
       },
     },
