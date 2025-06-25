@@ -12,7 +12,7 @@ import { getQuizResults } from "../../services/api";
 
 interface QuestionResult {
   questionId: string;
-  userAnswer: number;
+  userAnswer: number | null;
   correctAnswer: number;
   isCorrect: boolean;
   question: string;
@@ -243,7 +243,7 @@ export const QuizResults = () => {
             </p>
             <div className="lg:grid lg:grid-cols-2 lg:grid-rows-2 flex flex-col gap-4">
               {currentQuestion.options.map((option, index) => {
-                const isUserAnswer = index === currentQuestion.userAnswer;
+                const isUserAnswer = currentQuestion.userAnswer !== null && index === currentQuestion.userAnswer;
                 const isCorrectAnswer = index === currentQuestion.correctAnswer;
                 const isIncorrectUserAnswer = isUserAnswer && !currentQuestion.isCorrect;
                 
@@ -269,14 +269,28 @@ export const QuizResults = () => {
             <div className="gap-2 flex flex-row font-body items-center">
               <p className="text-neutral-300">Your Answer:</p>
               <div className={`px-3 py-1 rounded-lg ${
-                currentQuestion.isCorrect 
-                  ? "bg-green-400/10 text-green-400" 
-                  : "bg-red-400/10 text-red-400"
+                currentQuestion.userAnswer === null
+                  ? "bg-neutral-400/10 text-neutral-400"
+                  : currentQuestion.isCorrect 
+                    ? "bg-green-400/10 text-green-400" 
+                    : "bg-red-400/10 text-red-400"
               }`}>
-                {currentQuestion.isCorrect ? "Correct" : "Incorrect"}
+                {currentQuestion.userAnswer === null 
+                  ? "Not Attempted" 
+                  : currentQuestion.isCorrect 
+                    ? "Correct" 
+                    : "Incorrect"}
               </div>
             </div>
-            {!currentQuestion.isCorrect && (
+            {currentQuestion.userAnswer !== null && !currentQuestion.isCorrect && (
+              <div className="gap-2 flex flex-col lg:flex-row font-body justify-center lg:justify-start lg:items-center">
+                <p className="text-neutral-300">Your Selected:</p>
+                <div className="px-3 py-1 bg-red-400/10 text-red-400 rounded-lg self-start lg:self-center">
+                  {currentQuestion.options[currentQuestion.userAnswer]}
+                </div>
+              </div>
+            )}
+            {(currentQuestion.userAnswer === null || !currentQuestion.isCorrect) && (
               <div className="gap-2 flex flex-col lg:flex-row font-body justify-center lg:justify-start lg:items-center">
                 <p className="text-neutral-300">Correct Answer:</p>
                 <div className="px-3 py-1 bg-green-400/10 text-green-400 rounded-lg self-start lg:self-center">
@@ -288,13 +302,17 @@ export const QuizResults = () => {
             <div className={`flex flex-col gap-2 rounded-lg p-6 ${
               currentQuestion.isCorrect 
                 ? "bg-green-400/10" 
-                : "bg-blue-400/10"
+                : currentQuestion.userAnswer === null
+                  ? "bg-neutral-400/10"
+                  : "bg-blue-400/10"
             }`}>
               <div className="flex flex-col gap-2 justify-center">
                 <p className={`font-body lg:text-lg flex items-center gap-2 ${
                   currentQuestion.isCorrect 
                     ? "text-green-400" 
-                    : "text-blue-400"
+                    : currentQuestion.userAnswer === null
+                      ? "text-neutral-400"
+                      : "text-blue-400"
                 }`}>
                   <BadgeCheck className="w-5 h-5" />
                   Explanation

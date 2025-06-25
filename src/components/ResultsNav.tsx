@@ -2,7 +2,7 @@ import { Button } from "./Button";
 
 interface QuestionResult {
   questionId: string;
-  userAnswer: number;
+  userAnswer: number | null;
   correctAnswer: number;
   isCorrect: boolean;
   question: string;

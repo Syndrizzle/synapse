@@ -8,14 +8,9 @@ import { getQuizResults } from "../../services/api";
 
 interface QuizResultsData {
   quizId: string;
-  submittedAt: string;
   totalQuestions: number;
   correctAnswers: number;
-  incorrectAnswers: number;
-  score: number;
   percentage: number;
-  timeTaken: number;
-  performance: 'excellent' | 'good' | 'average' | 'needs_improvement';
 }
 
 export const QuizAlreadySubmitted = () => {
