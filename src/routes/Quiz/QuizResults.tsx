@@ -212,7 +212,7 @@ export const QuizResults = () => {
             document={<QuizResultsPDF resultsData={resultsData} />}
             fileName={`quiz-results-${resultsData.quizId}.pdf`}
           >
-            {({ blob, url, loading, error }) => (
+            {({ loading }) => (
               <Button size={"lg"} disabled={loading}>
                 <Download />
                 <p className="text-lg">
