@@ -331,15 +331,12 @@ router.get('/:quizId/results', async (req, res) => {
         const results = await redisService.getJSON(resultsKey);
 
         if (!results) {
-            return res.status(404).json(createError(
-                'Results not found',
-                'RESULTS_NOT_FOUND',
-                { quizId }
-            ));
+            // Return a success response with found: false instead of 404
+            return res.json(createSuccess({ found: false }, 'Results not found'));
         }
 
         res.json(createSuccess(
-            results,
+            { ...results, found: true },
             'Results retrieved successfully'
         ));
 

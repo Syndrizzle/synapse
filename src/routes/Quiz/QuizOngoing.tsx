@@ -41,16 +41,11 @@ export const QuizOngoingPage = () => {
 
     const fetchQuiz = async () => {
       try {
-        // First check if quiz is already submitted
-        try {
-          const resultsResponse = await getQuizResults(quizId);
-          if (resultsResponse.success) {
-            // Quiz already submitted, redirect to already submitted page
-            navigate(`/quiz/${quizId}/already-submitted`);
-            return;
-          }
-        } catch {
-          // Results not found, quiz not submitted yet - continue
+        const resultsResponse = await getQuizResults(quizId);
+        if (resultsResponse.data.found) {
+          // Quiz already submitted, redirect to already submitted page
+          navigate(`/quiz/${quizId}/already-submitted`);
+          return;
         }
 
         const response = await getQuiz(quizId);

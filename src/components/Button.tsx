@@ -6,7 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 
 const buttonVariants = cva(
-  "relative flex items-center justify-between gap-2 font-bold font-body transition-all disabled:pointer-events-none disabled:opacity-50 outline-none w-full cursor-pointer duration-300 text-lg",
+  "relative flex select-none items-center justify-between gap-2 font-bold font-body transition-all disabled:pointer-events-none disabled:opacity-50 outline-none w-full cursor-pointer duration-300 text-lg",
   {
     variants: {
       variant: {
@@ -55,7 +55,7 @@ function Button({
   const timeoutRef = React.useRef<number | null>(null);
   const glowTimeoutRef = React.useRef<number | null>(null);
 
-  const handleMouseDown = () => {
+  const handlePress = () => {
     if (!holdToConfirm) return;
 
     setShowGlow(false);
@@ -85,12 +85,12 @@ function Button({
     }, 2000);
   };
 
-  const handleMouseUp = () => {
+  const handleRelease = () => {
     if (!holdToConfirm) return;
     reset();
   };
 
-  const handleMouseLeave = () => {
+  const handleLeave = () => {
     if (!holdToConfirm) return;
     reset();
   };
@@ -130,9 +130,12 @@ function Button({
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
+      onMouseDown={handlePress}
+      onMouseUp={handleRelease}
+      onMouseLeave={handleLeave}
+      onTouchStart={handlePress}
+      onTouchEnd={handleRelease}
+      onTouchCancel={handleLeave}
       {...props}
     >
       {props.children}

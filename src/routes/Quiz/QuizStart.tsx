@@ -156,19 +156,14 @@ export const QuizStart = () => {
           holdToConfirm
           onHoldComplete={async () => {
             if (!quizId) return;
-            
-            try {
-              // Check if quiz is already submitted by trying to get results
-              const resultsResponse = await getQuizResults(quizId);
-              if (resultsResponse.success) {
-                // Quiz already submitted, redirect to already submitted page
-                navigate(`/quiz/${quizId}/already-submitted`);
-                return;
-              }
-            } catch {
-              // Results not found, quiz not submitted yet - continue to quiz
+
+            const resultsResponse = await getQuizResults(quizId);
+            if (resultsResponse.data.found) {
+              // Quiz already submitted, redirect to already submitted page
+              navigate(`/quiz/${quizId}/already-submitted`);
+              return;
             }
-            
+
             // Quiz not submitted, start the quiz
             navigate(`/quiz/${quizId}`);
           }}
