@@ -82,7 +82,7 @@ const UploadPage = () => {
       <>
         <div className="bg-neutral-900 h-screen flex flex-col px-6 py-10 gap-6">
           {headerContent}
-          <div className="flex-grow pb-40">
+          <div className="flex-grow pb-44">
             <UploadArea />
           </div>
         </div>
