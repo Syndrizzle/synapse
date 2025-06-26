@@ -6,7 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 
 const buttonVariants = cva(
-  "relative flex items-center justify-between gap-2 font-bold font-body transition-all disabled:pointer-events-none disabled:opacity-50 outline-none w-full cursor-pointer duration-300 text-lg overflow-x-hidden",
+  "relative flex items-center justify-between gap-2 font-bold font-body transition-all disabled:pointer-events-none disabled:opacity-50 outline-none w-full cursor-pointer duration-300 text-lg",
   {
     variants: {
       variant: {
@@ -20,7 +20,7 @@ const buttonVariants = cva(
           "bg-neutral-800 text-neutral-50 border-2 border-neutral-500 hover:border-yellow-400",
       },
       size: {
-        default: "lg:px-6 px-4 lg:py-3 py-2",
+        default: "lg:px-6 px-4 lg:py-3 py-3",
       },
     },
     defaultVariants: {
@@ -36,7 +36,6 @@ interface ButtonProps
   asChild?: boolean;
   holdToConfirm?: boolean;
   onHoldComplete?: () => void;
-  shimmer?: boolean;
 }
 
 function Button({
@@ -46,7 +45,6 @@ function Button({
   asChild = false,
   holdToConfirm = false,
   onHoldComplete,
-  shimmer = false,
   ...props
 }: ButtonProps) {
   const Comp = asChild ? Slot : "button";
@@ -129,31 +127,26 @@ function Button({
   const showProgressBar = isHolding && progress > 0 && !showGlow;
 
   return (
-    <div className="relative">
-      <Comp
-        data-slot="button"
-        className={cn(buttonVariants({ variant, size, className }))}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-        {...props}
-      >
-        {props.children}
-        <AnimatePresence>
-          {showProgressBar && (
-            <motion.div
-              style={progressStyle}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            />
-          )}
-        </AnimatePresence>
-        {shimmer && !isHolding && (
-          <div className="bg-(image:--shimmer-gradient) absolute top-0 left-0 h-full w-full animate-shimmer" />
+    <Comp
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
+      {...props}
+    >
+      {props.children}
+      <AnimatePresence>
+        {showProgressBar && (
+          <motion.div
+            style={progressStyle}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          />
         )}
-      </Comp>
+      </AnimatePresence>
       <AnimatePresence>
         {showGlow && isHolding && (
           <motion.div
@@ -168,7 +161,7 @@ function Button({
           />
         )}
       </AnimatePresence>
-    </div>
+    </Comp>
   );
 }
 

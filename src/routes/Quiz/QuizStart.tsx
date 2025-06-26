@@ -153,7 +153,6 @@ export const QuizStart = () => {
           Back
         </Button>
         <Button
-        shimmer
           holdToConfirm
           onHoldComplete={async () => {
             if (!quizId) return;

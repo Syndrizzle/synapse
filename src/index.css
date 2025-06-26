@@ -41,19 +41,4 @@
         0 0 30px rgba(239, 68, 68, 0.6);
     }
   }
-  --shimmer-gradient: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.3) 45%,
-    rgba(255, 255, 255, 0) 55%
-  );
-  @keyframes shimmer {
-    0% {
-      transform: translateX(-100%);
-    }
-    100% {
-      transform: translateX(100%);
-    }
-  }
-  --animate-shimmer: shimmer 2s infinite;
 }
