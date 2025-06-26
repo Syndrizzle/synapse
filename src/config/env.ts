@@ -4,16 +4,17 @@
 
 export const config = {
   // API Configuration
-  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
-  
+  apiBaseUrl:
+    import.meta.env.VITE_API_BASE_URL || "https://synapse-server.drzl.dev",
+
   // Upload Configuration
-  maxFileSize: parseInt(import.meta.env.VITE_MAX_FILE_SIZE || '10485760'), // 10MB
-  maxFiles: parseInt(import.meta.env.VITE_MAX_FILES || '6'),
-  allowedFileTypes: ['application/pdf'],
-  
+  maxFileSize: parseInt(import.meta.env.VITE_MAX_FILE_SIZE || "10485760"), // 10MB
+  maxFiles: parseInt(import.meta.env.VITE_MAX_FILES || "6"),
+  allowedFileTypes: ["application/pdf"],
+
   // UI Configuration
-  uploadTimeout: parseInt(import.meta.env.VITE_UPLOAD_TIMEOUT || '300000'), // 5 minutes
-  
+  uploadTimeout: parseInt(import.meta.env.VITE_UPLOAD_TIMEOUT || "300000"), // 5 minutes
+
   // Development
   isDevelopment: import.meta.env.DEV,
 } as const;
