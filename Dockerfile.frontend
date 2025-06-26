@@ -1,0 +1,23 @@
+ARG VITE_API_BASE_URL
+ARG VITE_UPLOAD_TIMEOUT
+
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install -g pnpm
+
+RUN pnpm install
+
+COPY . .
+
+RUN pnpm build
+
+EXPOSE 5173
+
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_UPLOAD_TIMEOUT=$VITE_UPLOAD_TIMEOUT
+
+CMD ["pnpm", "preview", "--host", "--port", "5173"]
