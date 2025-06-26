@@ -8,6 +8,7 @@ services:
     environment:
       - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:3000}
       - VITE_UPLOAD_TIMEOUT=${VITE_UPLOAD_TIMEOUT:-300000}
+      - __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=${__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS:-0.0.0.0}
     volumes:
       - .:/app
     command: pnpm preview --host --port 5173
@@ -37,8 +38,3 @@ services:
     volumes:
       - ./server:/app
     command: pnpm start
-
-  # redis:
-  #   image: redis:alpine
-  #   ports:
-  #     - "6379:6379"
