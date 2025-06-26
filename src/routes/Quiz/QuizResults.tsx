@@ -4,11 +4,13 @@ import toast from "react-hot-toast";
 import CountUp from "react-countup";
 import LottieAnimation from "../../components/LottieAnimation";
 import ResultLottie from "../../animations/result.json";
-import { ArrowRight, BadgeCheck, FileText, Star, LoaderCircle } from "lucide-react";
+import { ArrowRight, BadgeCheck, Star, LoaderCircle, Download } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { ResultsNav } from "../../components/ResultsNav";
 import { Button } from "../../components/Button";
 import { getQuizResults } from "../../services/api";
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { QuizResultsPDF } from '../../components/QuizResultsPDF';
 
 interface QuestionResult {
   questionId: string;
@@ -33,6 +35,7 @@ interface QuizResultsData {
   timeTaken: number;
   questionResults: QuestionResult[];
   performance: 'excellent' | 'good' | 'average' | 'needs_improvement';
+  description: string;
 }
 export const QuizResults = () => {
   const { quizId } = useParams<{ quizId: string }>();
@@ -205,10 +208,19 @@ export const QuizResults = () => {
           <p className="lg:text-5xl text-4xl text-neutral-50 font-heading">
             Download this Result as a PDF
           </p>
-          <Button size={"lg"}>
-            <FileText />
-            <p className="text-lg">Generate PDF</p>
-          </Button>
+          <PDFDownloadLink
+            document={<QuizResultsPDF resultsData={resultsData} />}
+            fileName={`quiz-results-${resultsData.quizId}.pdf`}
+          >
+            {({ blob, url, loading, error }) => (
+              <Button size={"lg"} disabled={loading}>
+                <Download />
+                <p className="text-lg">
+                  {loading ? 'Generating PDF...' : 'Download PDF'}
+                </p>
+              </Button>
+            )}
+          </PDFDownloadLink>
         </div>
         <div className="w-full flex bg-neutral-800 rounded-lg md:col-span-5 md:row-start-2 md:col-start-5 row-start-4 col-span-9 items-center justify-center p-6 flex-col lg:gap-4 gap-3">
           <div className="lg:text-3xl text-2xl text-neutral-50 font-heading flex flex-row items-center gap-2">

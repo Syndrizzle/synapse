@@ -8,7 +8,7 @@ import { Error } from "./routes/Error";
 import UploadPage from "./routes/Upload";
 import { QuizStart } from "./routes/Quiz/QuizStart";
 import { QuizOngoingPage } from "./routes/Quiz/QuizOngoing";
-import { QuizResults } from "./routes/Quiz/QuizResults";
+import { QuizResults } from "./routes/Quiz/QuizResults.tsx";
 import { QuizAlreadySubmitted } from "./routes/Quiz/QuizAlreadySubmitted";
 
 

@@ -119,7 +119,7 @@ export const QuizAlreadySubmitted = () => {
                     </p>
                 </div>
                 <div className="col-span-4 row-start-2 flex lg:flex-row flex-col w-full rounded-lg bg-neutral-800 p-6 justify-between items-center gap-4">
-                    <p className="font-heading text-neutral-50 lg:text-2xl text-3xl lg:text-4xl lg:w-1/2 text-center lg:text-left">
+                    <p className="font-heading text-neutral-50 text-3xl lg:text-4xl lg:w-1/2 text-center lg:text-left">
                         Interested? Check the full result for more details.
                     </p>
                     <a href={`/quiz/${resultsData.quizId}/results`} className="w-full lg:w-auto">
