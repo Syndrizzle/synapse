@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   questionNumber: {
-    fontSize: 24,
+    fontSize: 20,
     color: '#fafafa',
     fontFamily: 'Instrument Serif',
   },
@@ -229,15 +229,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   questionText: {
-    fontSize: 20,
+    fontSize: 16,
     color: '#fafafa',
     marginBottom: 15,
   },
-  optionsContainer: {
-    marginBottom: 15,
-  },
   option: {
-    fontSize: 16,
+    fontSize: 14,
     padding: '10 14',
     marginBottom: 10,
     borderWidth: 2,
@@ -261,14 +258,12 @@ const styles = StyleSheet.create({
     borderColor: '#737373',
     color: '#fafafa',
   },
-  answerInfo: {
-    marginBottom: 10,
-  },
+
   answerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 5,
+    marginBottom: 10,
   },
   correctAnswerRow: {
     flexDirection: 'column',
@@ -305,7 +300,7 @@ const styles = StyleSheet.create({
   },
   explanation: {
     backgroundColor: '#60a5fa20',
-    padding: '14 18',
+    padding: '10',
     borderRadius: 8,
   },
   explanationTitle: {
@@ -314,12 +309,6 @@ const styles = StyleSheet.create({
     color: '#60a5fa',
 
   },
-  explanationCheck: {
-    width: 14,
-    height: 14,
-    stroke: '#60a5fa',
-    strokeWidth: 2,
-  },
   explanationHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -327,6 +316,28 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   explanationText: {
+    fontSize: 14,
+    color: '#fafafa',
+  },
+  correctAnswer: {
+    backgroundColor: '#22c55e20',
+    padding: '10',
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  correctAnswerTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#22c55e',
+
+  },
+  correctAnswerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+    gap: 4,
+  },
+  correctAnswerText: {
     fontSize: 14,
     color: '#fafafa',
   },
@@ -522,7 +533,7 @@ export const QuizResultsPDF = ({ resultsData }: QuizResultsPDFProps) => (
           {/* Question Text */}
           <Text style={styles.questionText}>{question.question}</Text>
 
-          <View style={styles.optionsContainer}>
+          <View>
             {question.options.map((option, optionIndex) => {
               const isUserAnswer = question.userAnswer !== null && optionIndex === question.userAnswer;
               const isCorrectAnswer = optionIndex === question.correctAnswer;
@@ -542,9 +553,10 @@ export const QuizResultsPDF = ({ resultsData }: QuizResultsPDFProps) => (
               );
             })}
           </View>
+          <View style={styles.separator} />
 
           {/* Answer Information */}
-          <View style={styles.answerInfo}>
+          <View>
             <View style={styles.answerRow}>
               <Text style={styles.answerLabel}>Your Answer:</Text>
               <Text style={[
@@ -564,11 +576,15 @@ export const QuizResultsPDF = ({ resultsData }: QuizResultsPDFProps) => (
             </View>
 
             {(question.userAnswer === null || !question.isCorrect) && (
-              <View style={styles.correctAnswerRow}>
-                <Text style={styles.answerLabel}>Correct Answer:</Text>
-                <Text style={[styles.correctAnswerValue, styles.answerCorrect]}>
-                  {question.options[question.correctAnswer]}
-                </Text>
+              <View style={styles.correctAnswer}>
+                <View style={styles.correctAnswerHeader}>
+                  <Svg width="16" height="16" viewBox="0 0 72 72"
+                    fill="none"
+                  >
+                    <Path d="M62,36c0,3.809-2.343,7.067-5.664,8.424c1.389,3.308,0.742,7.268-1.952,9.961c-2.693,2.693-6.654,3.341-9.961,1.952	C43.067,59.657,39.809,62,36,62s-7.067-2.343-8.424-5.664c-3.307,1.389-7.268,0.742-9.961-1.952	c-2.693-2.693-3.341-6.654-1.952-9.961C12.343,43.067,10,39.809,10,36c0-3.809,2.343-7.067,5.664-8.424	c-1.389-3.308-0.742-7.268,1.952-9.961c2.693-2.693,6.654-3.341,9.961-1.951C28.933,12.342,32.191,10,36,10s7.067,2.342,8.424,5.664	c3.307-1.389,7.268-0.742,9.961,1.951c2.693,2.693,3.341,6.654,1.952,9.961C59.657,28.933,62,32.191,62,36z M46.018,31.464	c0.901-1.391,0.504-3.248-0.887-4.149c-1.39-0.901-3.247-0.503-4.148,0.886l-7.134,11.011l-3.097-3.519	c-1.094-1.243-2.99-1.364-4.233-0.271c-1.244,1.095-1.365,2.99-0.271,4.234l5.713,6.493c0.571,0.649,1.394,1.018,2.252,1.018	c0.073,0,0.146-0.002,0.22-0.008c0.937-0.069,1.787-0.572,2.298-1.36L46.018,31.464z" fill='#22c55e'></Path>
+                  </Svg>
+                  <Text style={styles.correctAnswerTitle}>Correct Answer</Text></View>
+                <Text style={styles.correctAnswerText}>{question.options[question.correctAnswer]}</Text>
               </View>
             )}
           </View>
@@ -580,7 +596,7 @@ export const QuizResultsPDF = ({ resultsData }: QuizResultsPDFProps) => (
                 fill="none"
               >
                 <Path d="M62,36c0,3.809-2.343,7.067-5.664,8.424c1.389,3.308,0.742,7.268-1.952,9.961c-2.693,2.693-6.654,3.341-9.961,1.952	C43.067,59.657,39.809,62,36,62s-7.067-2.343-8.424-5.664c-3.307,1.389-7.268,0.742-9.961-1.952	c-2.693-2.693-3.341-6.654-1.952-9.961C12.343,43.067,10,39.809,10,36c0-3.809,2.343-7.067,5.664-8.424	c-1.389-3.308-0.742-7.268,1.952-9.961c2.693-2.693,6.654-3.341,9.961-1.951C28.933,12.342,32.191,10,36,10s7.067,2.342,8.424,5.664	c3.307-1.389,7.268-0.742,9.961,1.951c2.693,2.693,3.341,6.654,1.952,9.961C59.657,28.933,62,32.191,62,36z M46.018,31.464	c0.901-1.391,0.504-3.248-0.887-4.149c-1.39-0.901-3.247-0.503-4.148,0.886l-7.134,11.011l-3.097-3.519	c-1.094-1.243-2.99-1.364-4.233-0.271c-1.244,1.095-1.365,2.99-0.271,4.234l5.713,6.493c0.571,0.649,1.394,1.018,2.252,1.018	c0.073,0,0.146-0.002,0.22-0.008c0.937-0.069,1.787-0.572,2.298-1.36L46.018,31.464z" fill='#60a5fa'></Path>
-              </Svg>             
+              </Svg>
               <Text style={styles.explanationTitle}>Explanation</Text></View>
             <Text style={styles.explanationText}>{question.explanation}</Text>
           </View>

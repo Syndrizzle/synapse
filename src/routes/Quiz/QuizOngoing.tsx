@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { ArrowLeft, ArrowRight, Check, Clock, LoaderCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock, LoaderCircle } from "lucide-react";
 import { QuizArea } from "../../components/QuizArea";
 import { QuizNav } from "../../components/QuizNav";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import { getQuiz, submitQuiz, getQuizResults } from "../../services/api";
+import { Button } from "../../components/Button";
 
 interface Question {
   id: string;
@@ -186,32 +187,32 @@ export const QuizOngoingPage = () => {
         onGoToQuestion={handleGoToQuestion}
       />
       <div className="flex gap-2 flex-row">
-        <div
+        <Button
           onClick={handlePrevQuestion}
-          className={`bg-yellow-300 w-full px-3 lg:py-3 py-2  transition-all duration-300 border-2 border-neutral-950 flex items-center justify-center cursor-pointer rounded-none hover:rounded-[12px] ${
+          className={`${
             currentQuestionIndex === 0
               ? "opacity-50 pointer-events-none"
-              : " hover:bg-yellow-500"
+              : ""
           }`}
         >
           <ArrowLeft />
-        </div>
-        <div
+        </Button>
+        <Button
           onClick={handleNextQuestion}
-          className={`bg-yellow-300 w-full px-3 lg:py-3 py-2  transition-all duration-300 border-2 border-neutral-950 flex items-center justify-center cursor-pointer rounded-none hover:rounded-[12px] ${
+          className={`${
             currentQuestionIndex === quizData.questions.length - 1
               ? "opacity-50 pointer-events-none cursor-not-allowed"
-              : " hover:bg-yellow-500"
+              : ""
           }`}
         >
           <ArrowRight />
-        </div>
+        </Button>
       </div>
       <Button
         holdToConfirm
         onHoldComplete={handleFinishQuiz}
+        className="justify-center flex-1"
       >
-        <Check />
         Hold to Finish
       </Button>
     </div>

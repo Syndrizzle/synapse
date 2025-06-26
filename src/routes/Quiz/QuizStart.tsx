@@ -146,7 +146,6 @@ export const QuizStart = () => {
       </div>
       <div className="md:w-1/5 w-full flex md:flex-row flex-col items-center justify-center md:gap-4 gap-2">
         <Button
-          size="lg"
           className="text-xl"
           variant="destructive"
           onClick={() => navigate("/")}
@@ -155,7 +154,6 @@ export const QuizStart = () => {
           Back
         </Button>
         <Button
-          size="lg"
           className="text-xl"
           holdToConfirm
           onHoldComplete={async () => {

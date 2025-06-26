@@ -28,7 +28,6 @@ export const ResultsNav = ({ questionResults, selectedQuestionIndex, onQuestionS
           <Button 
             key={result.questionId}
             className="flex items-center justify-center" 
-            size={"lg"}
             variant={variant}
             onClick={() => onQuestionSelect(index)}
           >

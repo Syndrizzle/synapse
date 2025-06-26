@@ -33,7 +33,6 @@ export const QuizNav = ({ totalQuestions, currentQuestionIndex, answers, visited
     <Button
       key={i}
       className="flex items-center justify-center"
-      size={"lg"}
       variant={getButtonVariant(i)}
       onClick={() => {
         onGoToQuestion(i);
@@ -47,13 +46,13 @@ export const QuizNav = ({ totalQuestions, currentQuestionIndex, answers, visited
   if (isMobile) {
     return (
       <>
-        <div
+        <Button
           className={`${
             isOpen ? "bg-yellow-400" : "bg-yellow-300"
-          } border-2 border-neutral-900`}
+          } w-auto px-0 py-0` }
         >
           <Hamburger toggled={isOpen} toggle={setOpen} size={24} />
-        </div>
+        </Button>
         <AnimatePresence>
           {isOpen && (
             <motion.div

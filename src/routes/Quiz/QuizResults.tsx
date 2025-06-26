@@ -154,9 +154,9 @@ export const QuizResults = () => {
           </div>
           <p className="text-neutral-50 font-heading lg:text-5xl text-3xl">
             <span className="text-green-500">
-              <CountUp 
-                end={resultsData.correctAnswers} 
-                duration={1.5} 
+              <CountUp
+                end={resultsData.correctAnswers}
+                duration={1.5}
                 delay={0.5}
               />
             </span> / {resultsData.totalQuestions} Questions
@@ -191,9 +191,9 @@ export const QuizResults = () => {
               <ArrowRight className="md:w-5 md:h-5 w-4 h-4" />
             </div>
             <p className="font-heading lg:text-5xl text-3xl text-green-500">
-              <CountUp 
-                end={resultsData.percentage} 
-                duration={1.5} 
+              <CountUp
+                end={resultsData.percentage}
+                duration={1.5}
                 delay={0.5}
                 suffix="%"
               />
@@ -213,7 +213,7 @@ export const QuizResults = () => {
             fileName={`quiz-results-${resultsData.quizId}.pdf`}
           >
             {({ loading }) => (
-              <Button size={"lg"} disabled={loading}>
+              <Button disabled={loading}>
                 <Download />
                 <p className="text-lg">
                   {loading ? 'Generating PDF...' : 'Download PDF'}
@@ -226,7 +226,7 @@ export const QuizResults = () => {
           <div className="lg:text-3xl text-2xl text-neutral-50 font-heading flex flex-row items-center gap-2">
             Check Individual Questions
           </div>
-          <ResultsNav 
+          <ResultsNav
             questionResults={resultsData.questionResults}
             selectedQuestionIndex={selectedQuestionIndex}
             onQuestionSelect={setSelectedQuestionIndex}
@@ -234,7 +234,7 @@ export const QuizResults = () => {
         </div>
       </div>
       <AnimatePresence mode="wait">
-        <motion.div 
+        <motion.div
           key={selectedQuestionIndex}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -249,7 +249,7 @@ export const QuizResults = () => {
             </p>
           </div>
           <div className="bg-neutral-800 h-0.5 w-full my-4" />
-          <div className="w-full flex flex-col gap-6">
+          <div className="w-full flex flex-col gap-4">
             <p className="font-body text-neutral-50 text-2xl">
               {currentQuestion.question}
             </p>
@@ -258,17 +258,17 @@ export const QuizResults = () => {
                 const isUserAnswer = currentQuestion.userAnswer !== null && index === currentQuestion.userAnswer;
                 const isCorrectAnswer = index === currentQuestion.correctAnswer;
                 const isIncorrectUserAnswer = isUserAnswer && !currentQuestion.isCorrect;
-                
-                let className = "font-body border-2 flex flex-row items-center justify-center px-6 py-3 md:text-2xl text-lg relative cursor-pointer transition-all duration-300 gap-4 ";
-                
+
+                let className = "font-body border-2 flex flex-row items-center justify-center px-6 py-3 md:text-2xl text-lg relative transition-all duration-300 gap-4 ";
+
                 if (isCorrectAnswer) {
-                  className += "bg-green-400 text-neutral-900 border-green-600";
+                  className += "bg-green-400 text-neutral-900 border-green-600 inset-shadow-sm inset-shadow-green-900";
                 } else if (isIncorrectUserAnswer) {
-                  className += "bg-red-400 text-neutral-900 border-red-600";
+                  className += "bg-red-400 text-neutral-900 border-red-600 inset-shadow-sm inset-shadow-red-900";
                 } else {
                   className += "bg-neutral-900 text-neutral-50 border-neutral-500";
                 }
-                
+
                 return (
                   <div key={index} className={className}>
                     {option}
@@ -278,54 +278,46 @@ export const QuizResults = () => {
             </div>
             <div className="bg-neutral-800 h-0.5 w-full my-2" />
             <div className="flex flex-col gap-4">
-            <div className="gap-2 flex flex-row font-body items-center">
-              <p className="text-neutral-300">Your Answer:</p>
-              <div className={`px-3 py-1 rounded-lg ${
-                currentQuestion.userAnswer === null
-                  ? "bg-neutral-400/10 text-neutral-400"
-                  : currentQuestion.isCorrect 
-                    ? "bg-green-400/10 text-green-400" 
-                    : "bg-red-400/10 text-red-400"
-              }`}>
-                {currentQuestion.userAnswer === null 
-                  ? "Not Attempted" 
-                  : currentQuestion.isCorrect 
-                    ? "Correct" 
-                    : "Incorrect"}
-              </div>
-            </div>
-            {currentQuestion.userAnswer !== null && !currentQuestion.isCorrect && (
-              <div className="gap-2 flex flex-col lg:flex-row font-body justify-center lg:justify-start lg:items-center">
-                <p className="text-neutral-300">Your Selected:</p>
-                <div className="px-3 py-1 bg-red-400/10 text-red-400 rounded-lg self-start lg:self-center">
-                  {currentQuestion.options[currentQuestion.userAnswer]}
+              <div className="gap-2 flex flex-row font-body items-center">
+                <p className="text-neutral-300">Your Answer:</p>
+                <div className={`px-3 py-1 rounded-lg ${currentQuestion.userAnswer === null
+                    ? "bg-neutral-400/10 text-neutral-400"
+                    : currentQuestion.isCorrect
+                      ? "bg-green-400/10 text-green-400"
+                      : "bg-red-400/10 text-red-400"
+                  }`}>
+                  {currentQuestion.userAnswer === null
+                    ? "Not Attempted"
+                    : currentQuestion.isCorrect
+                      ? "Correct"
+                      : "Incorrect"}
                 </div>
               </div>
-            )}
-            {(currentQuestion.userAnswer === null || !currentQuestion.isCorrect) && (
-              <div className="gap-2 flex flex-col lg:flex-row font-body justify-center lg:justify-start lg:items-center">
-                <p className="text-neutral-300">Correct Answer:</p>
-                <div className="px-3 py-1 bg-green-400/10 text-green-400 rounded-lg self-start lg:self-center">
-                  {currentQuestion.options[currentQuestion.correctAnswer]}
+              {(currentQuestion.userAnswer === null || !currentQuestion.isCorrect) && (
+                <div className="flex flex-col gap-2 rounded-lg p-4 bg-green-400/10">
+                  <div className="flex flex-col gap-2 justify-center">
+                    <p className="font-body lg:text-lg flex items-center gap-2 text-green-400">                  <BadgeCheck className="w-5 h-5" />
+                    Correct Answer:</p>
+                    <p className="font-body text-neutral-50 lg:text-xl">
+                    {currentQuestion.options[currentQuestion.correctAnswer]}
+                  </p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
             </div>
-            <div className={`flex flex-col gap-2 rounded-lg p-6 ${
-              currentQuestion.isCorrect 
-                ? "bg-green-400/10" 
+            <div className={`flex flex-col gap-2 rounded-lg p-4 ${currentQuestion.isCorrect
+                ? "bg-green-400/10"
                 : currentQuestion.userAnswer === null
                   ? "bg-neutral-400/10"
                   : "bg-blue-400/10"
-            }`}>
+              }`}>
               <div className="flex flex-col gap-2 justify-center">
-                <p className={`font-body lg:text-lg flex items-center gap-2 ${
-                  currentQuestion.isCorrect 
-                    ? "text-green-400" 
+                <p className={`font-body lg:text-lg flex items-center gap-2 ${currentQuestion.isCorrect
+                    ? "text-green-400"
                     : currentQuestion.userAnswer === null
                       ? "text-neutral-400"
                       : "text-blue-400"
-                }`}>
+                  }`}>
                   <BadgeCheck className="w-5 h-5" />
                   Explanation
                 </p>

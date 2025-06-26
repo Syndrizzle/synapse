@@ -6,7 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-between gap-2 whitespace-nowrap font-bold font-body transition-all disabled:pointer-events-none disabled:opacity-50 shrink-0 outline-none w-full cursor-pointer duration-300 relative overflow-hidden rounded-none hover:rounded-[12px]",
+  "flex items-center justify-between gap-2 font-bold font-body transition-all disabled:pointer-events-none disabled:opacity-50 outline-none w-full cursor-pointer duration-300 rounded-none hover:rounded-[12px]",
   {
     variants: {
       variant: {
@@ -20,10 +20,7 @@ const buttonVariants = cva(
           "bg-neutral-800 text-neutral-50 border-2 border-neutral-500 hover:border-yellow-400",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 gap-1.5 px-3",
-        lg: "h-12 px-6 text-lg",
-        icon: "size-9",
+        default: "lg:px-6 px-4 lg:py-3 py-2",
       },
     },
     defaultVariants: {
@@ -69,7 +66,7 @@ function Button({
                 onHoldComplete();
             }
             reset();
-        }, 5000);
+        }, 2000);
     };
 
     const handleMouseUp = () => {

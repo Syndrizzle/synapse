@@ -63,7 +63,6 @@ const UploadPage = () => {
   const actionButtons = (
     <>
       <Button
-        size={"lg"}
         disabled={files.length === 0}
         holdToConfirm
         onHoldComplete={handleConfirmUpload}
@@ -71,7 +70,7 @@ const UploadPage = () => {
         <Upload strokeWidth={2.5} />
         Hold to Upload
       </Button>
-      <Button size={"lg"} variant={"destructive"} holdToConfirm onHoldComplete={handleGoBack}>
+      <Button variant={"destructive"} holdToConfirm onHoldComplete={handleGoBack}>
         <ArrowLeft strokeWidth={2.5} />
         Hold to Go Back
       </Button>

@@ -43,7 +43,7 @@ export const QuizArea = ({ question, questionIndex, selectedAnswer, onSelectAnsw
                   onClick={() => onSelectAnswer(index)}
                   className={`font-body border-2 flex flex-row items-center justify-center px-6 py-3 md:text-2xl text-lg relative cursor-pointer transition-all duration-300 gap-4 ${
                     selectedAnswer === index
-                      ? "bg-yellow-400 text-neutral-900 border-neutral-950"
+                      ? "bg-yellow-300 text-neutral-900 border-yellow-600 inset-shadow-sm inset-shadow-yellow-800"
                       : "bg-neutral-900 text-neutral-50 border-neutral-500 hover:border-yellow-400 hover:text-yellow-400"
                   }`}>
                   {option}
