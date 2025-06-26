@@ -4,7 +4,7 @@ Font.register({
   family: 'Instrument Serif',
   fonts: [
     {
-      src: '../../public/fonts/Instrument_Serif/InstrumentSerif-Regular.ttf',
+      src: 'https://synapse.drzl.dev/fonts/Instrument_Serif/InstrumentSerif-Regular.ttf',
       fontWeight: 400,
       fontStyle: 'normal',
     }
@@ -15,27 +15,27 @@ Font.register({
   family: 'Space Grotesk',
   fonts: [
     {
-      src: '../../public/fonts/Space_Grotesk/SpaceGrotesk-Light.ttf',
+      src: 'https://synapse.drzl.dev/fonts/Space_Grotesk/SpaceGrotesk-Light.ttf',
       fontWeight: 300,
       fontStyle: 'normal',
     },
     {
-      src: '../../public/fonts/Space_Grotesk/SpaceGrotesk-Regular.ttf',
+      src: 'https://synapse.drzl.dev/fonts/Space_Grotesk/SpaceGrotesk-Regular.ttf',
       fontWeight: 400,
       fontStyle: 'normal',
     },
     {
-      src: '../../public/fonts/Space_Grotesk/SpaceGrotesk-Medium.ttf',
+      src: 'https://synapse.drzl.dev/fonts/Space_Grotesk/SpaceGrotesk-Medium.ttf',
       fontWeight: 500,
       fontStyle: 'normal',
     },
     {
-      src: '../../public/fonts/Space_Grotesk/SpaceGrotesk-SemiBold.ttf',
+      src: 'https://synapse.drzl.dev/fonts/Space_Grotesk/SpaceGrotesk-SemiBold.ttf',
       fontWeight: 600,
       fontStyle: 'normal',
     },
     {
-      src: '../../public/fonts/Space_Grotesk/SpaceGrotesk-Bold.ttf',
+      src: 'https://synapse.drzl.dev/fonts/Space_Grotesk/SpaceGrotesk-Bold.ttf',
       fontWeight: 700,
       fontStyle: 'normal',
     }
