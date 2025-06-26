@@ -157,7 +157,8 @@ export const QuizStart = () => {
         <Button
           size="lg"
           className="text-xl"
-          onClick={async () => {
+          holdToConfirm
+          onHoldComplete={async () => {
             if (!quizId) return;
             
             try {
@@ -177,7 +178,7 @@ export const QuizStart = () => {
           }}
         >
           <ArrowRight className="w-6 h-6" strokeWidth={2.5} />
-          Start Quiz
+          Hold to Start
         </Button>
       </div>
     </div>

@@ -114,17 +114,12 @@ export const QuizOngoingPage = () => {
 
   const handleFinishQuiz = async () => {
     if (!quizId) return;
-    const confirmation = window.confirm(
-      "Are you sure you want to finish the quiz?"
-    );
-    if (confirmation) {
-      try {
-        await submitQuiz(quizId, answers, elapsedTime);
-        toast.success("Quiz submitted successfully!");
-        navigate(`/quiz/${quizId}/results`);
-      } catch {
-        toast.error("Failed to submit quiz.");
-      }
+    try {
+      await submitQuiz(quizId, answers, elapsedTime);
+      toast.success("Quiz submitted successfully!");
+      navigate(`/quiz/${quizId}/results`);
+    } catch {
+      toast.error("Failed to submit quiz.");
     }
   };
 
@@ -193,7 +188,7 @@ export const QuizOngoingPage = () => {
       <div className="flex gap-2 flex-row">
         <div
           onClick={handlePrevQuestion}
-          className={`bg-yellow-300 w-full px-3 lg:py-3 py-2  transition-all duration-300 border-2 border-neutral-950 flex items-center justify-center cursor-pointer rounded-none hover:rounded-[50px] ${
+          className={`bg-yellow-300 w-full px-3 lg:py-3 py-2  transition-all duration-300 border-2 border-neutral-950 flex items-center justify-center cursor-pointer rounded-none hover:rounded-[12px] ${
             currentQuestionIndex === 0
               ? "opacity-50 pointer-events-none"
               : " hover:bg-yellow-500"
@@ -203,7 +198,7 @@ export const QuizOngoingPage = () => {
         </div>
         <div
           onClick={handleNextQuestion}
-          className={`bg-yellow-300 w-full px-3 lg:py-3 py-2  transition-all duration-300 border-2 border-neutral-950 flex items-center justify-center cursor-pointer rounded-none hover:rounded-[50px] ${
+          className={`bg-yellow-300 w-full px-3 lg:py-3 py-2  transition-all duration-300 border-2 border-neutral-950 flex items-center justify-center cursor-pointer rounded-none hover:rounded-[12px] ${
             currentQuestionIndex === quizData.questions.length - 1
               ? "opacity-50 pointer-events-none cursor-not-allowed"
               : " hover:bg-yellow-500"
@@ -212,13 +207,13 @@ export const QuizOngoingPage = () => {
           <ArrowRight />
         </div>
       </div>
-      <div
-        className="bg-yellow-300 w-full lg:px-6 px-4 lg:py-3 py-2 hover:bg-yellow-500 transition-all duration-300 border-2 border-neutral-950 flex items-center justify-between cursor-pointer rounded-none hover:rounded-[50px] font-body font-bold"
-        onClick={handleFinishQuiz}
+      <Button
+        holdToConfirm
+        onHoldComplete={handleFinishQuiz}
       >
         <Check />
-        Finish Quiz
-      </div>
+        Hold to Finish
+      </Button>
     </div>
   );
   if (isMobile) {

@@ -13,14 +13,8 @@ const UploadPage = () => {
   const isMobile = useIsMobile();
 
   const handleGoBack = () => {
-    if (
-      window.confirm(
-        "Are you sure you want to go back? All uploaded files will be removed."
-      )
-    ) {
-      clearFiles();
-      navigate("/");
-    }
+    clearFiles();
+    navigate("/");
   };
 
   const handleConfirmUpload = async () => {
@@ -71,14 +65,15 @@ const UploadPage = () => {
       <Button
         size={"lg"}
         disabled={files.length === 0}
-        onClick={handleConfirmUpload}
+        holdToConfirm
+        onHoldComplete={handleConfirmUpload}
       >
         <Upload strokeWidth={2.5} />
-        Confirm Upload
+        Hold to Upload
       </Button>
-      <Button size={"lg"} variant={"destructive"} onClick={handleGoBack}>
+      <Button size={"lg"} variant={"destructive"} holdToConfirm onHoldComplete={handleGoBack}>
         <ArrowLeft strokeWidth={2.5} />
-        Go Back
+        Hold to Go Back
       </Button>
     </>
   );
