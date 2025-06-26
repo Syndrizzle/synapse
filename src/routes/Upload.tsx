@@ -66,6 +66,7 @@ const UploadPage = () => {
         disabled={files.length === 0}
         holdToConfirm
         onHoldComplete={handleConfirmUpload}
+        shimmer
       >
         <Upload strokeWidth={2.5} />
         Hold to Upload

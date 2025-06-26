@@ -6,7 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 
 const buttonVariants = cva(
-  "flex items-center justify-between gap-2 font-bold font-body transition-all disabled:pointer-events-none disabled:opacity-50 outline-none w-full cursor-pointer duration-300 rounded-none hover:rounded-[12px]",
+  "relative flex items-center justify-between gap-2 font-bold font-body transition-all disabled:pointer-events-none disabled:opacity-50 outline-none w-full cursor-pointer duration-300 text-lg overflow-x-hidden",
   {
     variants: {
       variant: {
@@ -31,101 +31,145 @@ const buttonVariants = cva(
 );
 
 interface ButtonProps
-    extends React.ComponentProps<"button">,
-        VariantProps<typeof buttonVariants> {
-    asChild?: boolean;
-    holdToConfirm?: boolean;
-    onHoldComplete?: () => void;
+  extends React.ComponentProps<"button">,
+  VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+  holdToConfirm?: boolean;
+  onHoldComplete?: () => void;
+  shimmer?: boolean;
 }
 
 function Button({
-    className,
-    variant,
-    size,
-    asChild = false,
-    holdToConfirm = false,
-    onHoldComplete,
-    ...props
+  className,
+  variant,
+  size,
+  asChild = false,
+  holdToConfirm = false,
+  onHoldComplete,
+  shimmer = false,
+  ...props
 }: ButtonProps) {
-    const Comp = asChild ? Slot : "button";
-    const [isHolding, setIsHolding] = React.useState(false);
-    const [progress, setProgress] = React.useState(0);
-    const intervalRef = React.useRef<number | null>(null);
-    const timeoutRef = React.useRef<number | null>(null);
+  const Comp = asChild ? Slot : "button";
+  const [isHolding, setIsHolding] = React.useState(false);
+  const [progress, setProgress] = React.useState(0);
+  const [showGlow, setShowGlow] = React.useState(false);
+  const intervalRef = React.useRef<number | null>(null);
+  const timeoutRef = React.useRef<number | null>(null);
+  const glowTimeoutRef = React.useRef<number | null>(null);
 
-    const handleMouseDown = () => {
-        if (!holdToConfirm) return;
+  const handleMouseDown = () => {
+    if (!holdToConfirm) return;
 
-        setIsHolding(true);
-        intervalRef.current = window.setInterval(() => {
-            setProgress((prev) => Math.min(prev + 10, 100));
-        }, 100);
+    setShowGlow(false);
+    if (glowTimeoutRef.current) {
+      window.clearTimeout(glowTimeoutRef.current);
+      glowTimeoutRef.current = null;
+    }
 
-        timeoutRef.current = window.setTimeout(() => {
-            if (onHoldComplete) {
-                onHoldComplete();
-            }
-            reset();
-        }, 2000);
-    };
-
-    const handleMouseUp = () => {
-        if (!holdToConfirm) return;
-        reset();
-    };
-
-    const handleMouseLeave = () => {
-        if (!holdToConfirm) return;
-        reset();
-    };
-
-    const reset = () => {
-        setIsHolding(false);
-        setProgress(0);
-        if (intervalRef.current) {
-            window.clearInterval(intervalRef.current);
-            intervalRef.current = null;
+    setIsHolding(true);
+    intervalRef.current = window.setInterval(() => {
+      setProgress((prev) => {
+        const newProgress = Math.min(prev + 10, 100);
+        if (newProgress === 100) {
+          glowTimeoutRef.current = window.setTimeout(() => {
+            setShowGlow(true);
+          }, 200);
         }
-        if (timeoutRef.current) {
-            window.clearTimeout(timeoutRef.current);
-            timeoutRef.current = null;
-        }
-    };
+        return newProgress;
+      });
+    }, 100);
 
-    const progressStyle = {
-        width: `${progress}%`,
-        backgroundColor: 'rgba(0, 0, 0, 0.2)',
-        height: '100%',
-        position: 'absolute' as const,
-        left: 0,
-        top: 0,
-        transition: 'width 0.1s linear, opacity 0.3s ease-in-out',
-        opacity: isHolding && progress > 0 ? 1 : 0,
-    };
+    timeoutRef.current = window.setTimeout(() => {
+      if (onHoldComplete) {
+        onHoldComplete();
+      }
+      reset();
+    }, 2000);
+  };
 
-    return (
-        <Comp
-            data-slot="button"
-            className={cn(buttonVariants({ variant, size, className }))}
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseLeave}
-            {...props}
-        >
-            {props.children}
-            <AnimatePresence>
-                {isHolding && (
-                    <motion.div
-                        style={progressStyle}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                    />
-                )}
-            </AnimatePresence>
-        </Comp>
-    );
+  const handleMouseUp = () => {
+    if (!holdToConfirm) return;
+    reset();
+  };
+
+  const handleMouseLeave = () => {
+    if (!holdToConfirm) return;
+    reset();
+  };
+
+  const reset = () => {
+    setIsHolding(false);
+    setProgress(0);
+    setShowGlow(false);
+    if (intervalRef.current) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (glowTimeoutRef.current) {
+      window.clearTimeout(glowTimeoutRef.current);
+      glowTimeoutRef.current = null;
+    }
+  };
+
+  const progressStyle = {
+    width: `${progress}%`,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    height: '100%',
+    position: 'absolute' as const,
+    left: 0,
+    top: 0,
+    transition: 'width 0.1s linear, opacity 0.3s ease-in-out',
+    opacity: isHolding && progress > 0 ? 1 : 0,
+  };
+
+  const showProgressBar = isHolding && progress > 0 && !showGlow;
+
+  return (
+    <div className="relative">
+      <Comp
+        data-slot="button"
+        className={cn(buttonVariants({ variant, size, className }))}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        {...props}
+      >
+        {props.children}
+        <AnimatePresence>
+          {showProgressBar && (
+            <motion.div
+              style={progressStyle}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            />
+          )}
+        </AnimatePresence>
+        {shimmer && !isHolding && (
+          <div className="bg-(image:--shimmer-gradient) absolute top-0 left-0 h-full w-full animate-shimmer" />
+        )}
+      </Comp>
+      <AnimatePresence>
+        {showGlow && isHolding && (
+          <motion.div
+            className={cn(
+              "absolute inset-0 pointer-events-none",
+              variant === "destructive" ? "animate-pulse-glow-destructive" : "animate-pulse-glow"
+            )}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

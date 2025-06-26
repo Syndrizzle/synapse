@@ -211,7 +211,7 @@ export const QuizOngoingPage = () => {
       <Button
         holdToConfirm
         onHoldComplete={handleFinishQuiz}
-        className="justify-center flex-1"
+        className="justify-center flex-1 text-base "
       >
         Hold to Finish
       </Button>
