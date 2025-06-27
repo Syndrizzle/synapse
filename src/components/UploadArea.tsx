@@ -1,15 +1,12 @@
 import { useFileStore } from "../stores/fileStore";
 import { FileCard } from "./FileCard";
-import { useDropzone, type FileRejection } from "react-dropzone";
-import { useCallback } from "react";
-import { generateThumbnail } from "../lib/pdf";
 import { CirclePlus, Upload, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { checkApiHealth } from "../services/api";
-import toast from "react-hot-toast";
+import { useFileUpload } from "../hooks/useFileUpload";
 
 export const UploadArea = () => {
-  const { files, addFiles, maxFiles, maxFileSize, allowedFileTypes, capacityLoaded } = useFileStore();
+  const { files, maxFiles, capacityLoaded } = useFileStore();
 
   // Ensure capacity is fetched if user landed directly on /upload
   useEffect(() => {
@@ -18,63 +15,7 @@ export const UploadArea = () => {
     }
   }, [capacityLoaded]);
 
-  const onDrop = useCallback(
-    async (acceptedFiles: File[], fileRejections: FileRejection[]) => {
-      fileRejections.forEach(({ file, errors }) => {
-        errors.forEach((error) => {
-          if (error.code === "file-too-large") {
-            toast.error(
-              `File "${file.name}" is too large. Max size is ${
-                maxFileSize / (1024 * 1024)
-              }MB.`
-            );
-          } else {
-            toast.error(error.message);
-          }
-        });
-      });
-
-      // Remove files that already exist (duplicate drag)
-      const existingIds = new Set(files.map((f) => f.id));
-      const uniqueIncoming = acceptedFiles.filter(
-        (file) => !existingIds.has(`${file.name}-${file.lastModified}`)
-      );
-
-      const currentFileCount = files.length;
-      const remainingSlots = maxFiles - currentFileCount;
-      const filesToAccept = uniqueIncoming.slice(0, remainingSlots);
-      const rejectedCount = uniqueIncoming.length - filesToAccept.length;
-
-      if (rejectedCount > 0) {
-        toast.error(
-          `${rejectedCount} file(s) were not accepted because the maximum of ${maxFiles} files has been reached.`
-        );
-      }
-
-      if (filesToAccept.length === 0) return;
-
-      const fileDataPromises = filesToAccept.map(async (file) => {
-        const thumbnail = await generateThumbnail(file);
-        return {
-          id: `${file.name}-${file.lastModified}`,
-          file,
-          thumbnail,
-        };
-      });
-      const fileData = await Promise.all(fileDataPromises);
-      addFiles(fileData);
-    },
-    [files, addFiles, maxFileSize, maxFiles]
-  );
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: capacityLoaded
-      ? allowedFileTypes.reduce((acc, type) => ({ ...acc, [type]: [`.${type.split('/')[1]}`] }), {})
-      : {},
-    maxSize: maxFileSize,
-    disabled: !capacityLoaded || files.length >= maxFiles,
-  });
+  const { getRootProps, getInputProps, isDragActive } = useFileUpload();
 
   const remainingFiles = capacityLoaded ? maxFiles - files.length : 0;
 

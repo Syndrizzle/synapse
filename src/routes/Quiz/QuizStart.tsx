@@ -2,21 +2,13 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import LottieAnimation from "../../components/LottieAnimation";
 import SuccessLottie from "../../animations/success.json";
-import { ArrowLeft, ArrowRight, LoaderCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "../../components/Button";
 import { getQuiz, getQuizResults } from "../../services/api";
 import { useFileStore } from "../../stores/fileStore";
 import toast from "react-hot-toast";
-
-interface QuizData {
-  description: string;
-  id: string;
-  metadata: {
-    estimatedDuration: number;
-    topics: string[];
-    totalQuestions: number;
-  };
-}
+import { type QuizData } from "../../types/quiz";
+import { Loading } from "../../components/Loading";
 
 export const QuizStart = () => {
   const { quizId } = useParams<{ quizId: string }>();
@@ -50,24 +42,7 @@ export const QuizStart = () => {
 
   if (loading) {
     return (
-      <div className="bg-neutral-900 min-h-screen flex flex-col items-center justify-center">
-        <header className="absolute top-0 right-0 left-0 mt-12 flex items-center w-full justify-center">
-          <img
-            src="/logo.svg"
-            alt="Synapse Logo"
-            className="md:h-10 h-8 w-auto object-cover m-2"
-          />
-        </header>
-
-        <div className="flex flex-row items-center justify-center gap-4">
-          <div className="animate-spin text-neutral-50">
-            <LoaderCircle className="md:w-12 md:h-12 w-8 h-8" />
-          </div>
-          <p className="font-heading md:text-5xl text-4xl text-neutral-50">
-            Loading quiz...
-          </p>
-        </div>
-      </div>
+        <Loading/>
     );
   }
 
@@ -82,7 +57,7 @@ export const QuizStart = () => {
 
   return (
     <div className="bg-neutral-900 min-h-screen lg:max-w-6xl mx-auto flex flex-col items-center justify-start md:p-8 gap-4 p-4">
-      <header className="flex items-center w-full justify-center">
+      <header className="flex items-center w-full justify-center mt-4 md:mt-0">
         <img
           src="/logo.svg"
           alt="Synapse Logo"

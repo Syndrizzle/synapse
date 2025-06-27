@@ -10,7 +10,7 @@ import { QuizStart } from "./routes/Quiz/QuizStart";
 import { QuizOngoingPage } from "./routes/Quiz/QuizOngoing";
 import { QuizResults } from "./routes/Quiz/QuizResults.tsx";
 import { QuizAlreadySubmitted } from "./routes/Quiz/QuizAlreadySubmitted";
-
+import { Loading } from "./components/Loading.tsx";
 
 function App() {
   const { toasts } = useToasterStore();
@@ -97,10 +97,14 @@ function App() {
           <Route path="/uploading" element={<Uploading />} />
           <Route path="/analyzing" element={<Analyzing />} />
           <Route path="/error" element={<Error />} />
-          <Route path="/quiz/onboarding/:quizId" element={<QuizStart />} />
+          <Route path="/quiz/:quizId/onboarding" element={<QuizStart />} />
           <Route path="/quiz/:quizId/results" element={<QuizResults />} />
           <Route path="/quiz/:quizId" element={<QuizOngoingPage />} />
-          <Route path="/quiz/:quizId/already-submitted" element={<QuizAlreadySubmitted />} />
+          <Route path="/loading" element={<Loading />} />
+          <Route
+            path="/quiz/:quizId/already-submitted"
+            element={<QuizAlreadySubmitted />}
+          />
         </Routes>
       </Router>
     </>

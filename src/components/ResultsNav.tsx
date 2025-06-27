@@ -1,21 +1,5 @@
 import { Button } from "./Button";
-
-interface QuestionResult {
-  questionId: string;
-  userAnswer: number | null;
-  correctAnswer: number;
-  isCorrect: boolean;
-  question: string;
-  options: string[];
-  explanation: string;
-  topic: string;
-}
-
-interface ResultsNavProps {
-  questionResults: QuestionResult[];
-  selectedQuestionIndex: number;
-  onQuestionSelect: (index: number) => void;
-}
+import { type ResultsNavProps } from "../types/quiz";
 
 export const ResultsNav = ({ questionResults, selectedQuestionIndex, onQuestionSelect }: ResultsNavProps) => {
   return (
@@ -26,7 +10,7 @@ export const ResultsNav = ({ questionResults, selectedQuestionIndex, onQuestionS
         
         return (
           <Button 
-            key={result.questionId}
+            key={result.id}
             className="flex items-center justify-center" 
             variant={variant}
             onClick={() => onQuestionSelect(index)}

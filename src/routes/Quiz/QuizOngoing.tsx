@@ -1,24 +1,14 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { ArrowLeft, ArrowRight, Clock, LoaderCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock } from "lucide-react";
 import { QuizArea } from "../../components/QuizArea";
 import { QuizNav } from "../../components/QuizNav";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import { getQuiz, submitQuiz, getQuizResults } from "../../services/api";
 import { Button } from "../../components/Button";
-
-interface Question {
-  id: string;
-  question: string;
-  options: string[];
-  topic: string;
-}
-
-interface QuizData {
-  questions: Question[];
-  title: string;
-}
+import { type QuizData } from "../../types/quiz";
+import { Loading } from "../../components/Loading";
 
 export const QuizOngoingPage = () => {
   const { quizId } = useParams<{ quizId: string }>();
@@ -121,24 +111,7 @@ export const QuizOngoingPage = () => {
 
   if (loading || !quizData) {
     return (
-      <div className="bg-neutral-900 min-h-screen flex flex-col items-center justify-center">
-        <header className="absolute top-0 right-0 left-0 mt-12 flex items-center w-full justify-center">
-          <img
-            src="/logo.svg"
-            alt="Synapse Logo"
-            className="md:h-10 h-8 w-auto object-cover m-2"
-          />
-        </header>
-
-        <div className="flex flex-row items-center justify-center gap-4">
-          <div className="animate-spin text-neutral-50">
-            <LoaderCircle className="md:w-12 md:h-12 w-8 h-8" />
-          </div>
-          <p className="font-heading md:text-5xl text-4xl text-neutral-50">
-            Loading quiz...
-          </p>
-        </div>
-      </div>
+      <Loading/>
     );
   }
 
@@ -175,7 +148,6 @@ export const QuizOngoingPage = () => {
   const actionButtons = (
     <div className="flex md:flex-col gap-2 w-full">
       <QuizNav
-        totalQuestions={quizData.questions.length}
         currentQuestionIndex={currentQuestionIndex}
         answers={answers}
         visited={visited}

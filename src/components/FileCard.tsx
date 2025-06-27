@@ -1,6 +1,6 @@
 import { Trash } from "lucide-react";
 import { motion } from "motion/react";
-import type { FileData } from "../stores/fileStore";
+import { type FileData } from "../stores/fileStore";
 import { useFileStore } from "../stores/fileStore";
 import { formatBytes } from "../lib/utils";
 

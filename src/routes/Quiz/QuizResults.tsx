@@ -4,45 +4,28 @@ import toast from "react-hot-toast";
 import CountUp from "react-countup";
 import LottieAnimation from "../../components/LottieAnimation";
 import ResultLottie from "../../animations/result.json";
-import { ArrowRight, BadgeCheck, Star, LoaderCircle, Download } from "lucide-react";
+import { ArrowRight, BadgeCheck, Star, Download } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { ResultsNav } from "../../components/ResultsNav";
 import { Button } from "../../components/Button";
 import { getQuizResults } from "../../services/api";
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { QuizResultsPDF } from '../../components/QuizResultsPDF';
+import Confetti from 'react-confetti';
 
-interface QuestionResult {
-  questionId: string;
-  userAnswer: number | null;
-  correctAnswer: number;
-  isCorrect: boolean;
-  question: string;
-  options: string[];
-  explanation: string;
-  topic: string;
-}
-
-interface QuizResultsData {
-  title: string;
-  quizId: string;
-  submittedAt: string;
-  totalQuestions: number;
-  correctAnswers: number;
-  incorrectAnswers: number;
-  score: number;
-  percentage: number;
-  timeTaken: number;
-  questionResults: QuestionResult[];
-  performance: 'excellent' | 'good' | 'average' | 'needs_improvement';
-  description: string;
-}
+import { type QuizResultsData, type QuestionResult } from "../../types/quiz";
+import { Loading } from "../../components/Loading";
 export const QuizResults = () => {
   const { quizId } = useParams<{ quizId: string }>();
   const navigate = useNavigate();
   const [resultsData, setResultsData] = useState<QuizResultsData | null>(null);
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowDimensions, setWindowDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
 
   useEffect(() => {
     if (!quizId) {
@@ -55,7 +38,15 @@ export const QuizResults = () => {
       try {
         const response = await getQuizResults(quizId);
         if (response.success) {
-          setResultsData(response.data);
+          const mappedData = {
+            ...response.data,
+            id: response.data.id || response.data.quizId || quizId,
+            questionResults: response.data.questionResults?.map((result: QuestionResult & { questionId?: string }, index: number) => ({
+              ...result,
+              id: result.id || result.questionId || `question-${index}`
+            })) || []
+          };
+          setResultsData(mappedData);
         } else {
           toast.error(response.message || "Failed to load results.");
           navigate("/");
@@ -70,6 +61,35 @@ export const QuizResults = () => {
 
     fetchResults();
   }, [quizId, navigate]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (resultsData && resultsData.performance === "excellent") {
+      const confettiStartTimer = setTimeout(() => {
+        setShowConfetti(true);
+      }, 1000);
+
+      const confettiStopTimer = setTimeout(() => {
+        setShowConfetti(false);
+      }, 5000);
+
+      return () => {
+        clearTimeout(confettiStartTimer);
+        clearTimeout(confettiStopTimer);
+      };
+    }
+  }, [resultsData]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -112,23 +132,7 @@ export const QuizResults = () => {
 
   if (loading || !resultsData) {
     return (
-      <div className="bg-neutral-900 min-h-screen flex flex-col items-center justify-center">
-        <header className="absolute top-0 right-0 left-0 mt-12 flex items-center w-full justify-center">
-          <img
-            src="/logo.svg"
-            alt="Synapse Logo"
-            className="md:h-10 h-8 w-auto object-cover m-2"
-          />
-        </header>
-        <div className="flex flex-row items-center justify-center gap-4">
-          <div className="animate-spin text-neutral-50">
-            <LoaderCircle className="md:w-12 md:h-12 w-8 h-8" />
-          </div>
-          <p className="font-heading md:text-5xl text-4xl text-neutral-50">
-            Loading results...
-          </p>
-        </div>
-      </div>
+      <Loading/>
     );
   }
 
@@ -136,7 +140,27 @@ export const QuizResults = () => {
 
   return (
     <div className="bg-neutral-900 min-h-screen flex flex-col items-center justify-start md:p-8 gap-4 p-4 lg:max-w-5xl mx-auto">
-      <header className="flex items-center w-full justify-center">
+      <AnimatePresence>
+        {showConfetti && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            className="fixed inset-0 z-50 pointer-events-none"
+          >
+            <Confetti
+              width={windowDimensions.width}
+              height={windowDimensions.height}
+              recycle={false}
+              numberOfPieces={300}
+              gravity={0.3}
+              colors={['#22c55e', '#fbbf24', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <header className="flex items-center w-full justify-center mt-4 md:mt-0">
         <img
           src="/logo.svg"
           alt="Synapse Logo"
@@ -159,7 +183,8 @@ export const QuizResults = () => {
                 duration={1.5}
                 delay={0.5}
               />
-            </span> / {resultsData.totalQuestions} Questions
+            </span>{" "}
+            / {resultsData.questionResults.length} Questions
           </p>
         </div>
         <div className="bg-neutral-800 md:col-span-2 md:col-start-4 col-span-3 rounded-lg flex flex-col p-6 gap-2 justify-center">
@@ -170,7 +195,9 @@ export const QuizResults = () => {
             initial={{ opacity: 0, scale: 3 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 1.5 }}
-            className={`${getGradeColor(resultsData.performance)} font-body font-black lg:text-7xl text-5xl text-center`}
+            className={`${getGradeColor(
+              resultsData.performance
+            )} font-body font-black lg:text-7xl text-5xl text-center`}
           >
             {getGradeLetter(resultsData.performance)}
           </motion.p>
@@ -210,13 +237,13 @@ export const QuizResults = () => {
           </p>
           <PDFDownloadLink
             document={<QuizResultsPDF resultsData={resultsData} />}
-            fileName={`quiz-results-${resultsData.quizId}.pdf`}
+            fileName={`quiz-results-${resultsData.id}.pdf`}
           >
             {({ loading }) => (
               <Button disabled={loading}>
                 <Download />
                 <p className="text-lg">
-                  {loading ? 'Generating PDF...' : 'Download PDF'}
+                  {loading ? "Generating PDF..." : "Download PDF"}
                 </p>
               </Button>
             )}
@@ -255,18 +282,25 @@ export const QuizResults = () => {
             </p>
             <div className="lg:grid lg:grid-cols-2 lg:grid-rows-2 flex flex-col gap-4">
               {currentQuestion.options.map((option, index) => {
-                const isUserAnswer = currentQuestion.userAnswer !== null && index === currentQuestion.userAnswer;
+                const isUserAnswer =
+                  currentQuestion.userAnswer !== null &&
+                  index === currentQuestion.userAnswer;
                 const isCorrectAnswer = index === currentQuestion.correctAnswer;
-                const isIncorrectUserAnswer = isUserAnswer && !currentQuestion.isCorrect;
+                const isIncorrectUserAnswer =
+                  isUserAnswer && !currentQuestion.isCorrect;
 
-                let className = "font-body border-2 flex flex-row items-center justify-center px-6 py-3 md:text-2xl text-lg relative transition-all duration-300 gap-4 ";
+                let className =
+                  "font-body border-2 flex flex-row items-center justify-center px-6 py-3 md:text-2xl text-lg relative transition-all duration-300 gap-4 ";
 
                 if (isCorrectAnswer) {
-                  className += "bg-green-400 text-neutral-900 border-green-600 inset-shadow-sm inset-shadow-green-900";
+                  className +=
+                    "bg-green-400 text-neutral-900 border-green-600 inset-shadow-sm inset-shadow-green-900";
                 } else if (isIncorrectUserAnswer) {
-                  className += "bg-red-400 text-neutral-900 border-red-600 inset-shadow-sm inset-shadow-red-900";
+                  className +=
+                    "bg-red-400 text-neutral-900 border-red-600 inset-shadow-sm inset-shadow-red-900";
                 } else {
-                  className += "bg-neutral-900 text-neutral-50 border-neutral-500";
+                  className +=
+                    "bg-neutral-900 text-neutral-50 border-neutral-500";
                 }
 
                 return (
@@ -280,44 +314,57 @@ export const QuizResults = () => {
             <div className="flex flex-col gap-4">
               <div className="gap-2 flex flex-row font-body items-center">
                 <p className="text-neutral-300">Your Answer:</p>
-                <div className={`px-3 py-1 rounded-lg ${currentQuestion.userAnswer === null
-                    ? "bg-neutral-400/10 text-neutral-400"
-                    : currentQuestion.isCorrect
+                <div
+                  className={`px-3 py-1 rounded-lg ${
+                    currentQuestion.userAnswer === null
+                      ? "bg-neutral-400/10 text-neutral-400"
+                      : currentQuestion.isCorrect
                       ? "bg-green-400/10 text-green-400"
                       : "bg-red-400/10 text-red-400"
-                  }`}>
+                  }`}
+                >
                   {currentQuestion.userAnswer === null
                     ? "Not Attempted"
                     : currentQuestion.isCorrect
-                      ? "Correct"
-                      : "Incorrect"}
+                    ? "Correct"
+                    : "Incorrect"}
                 </div>
               </div>
-              {(currentQuestion.userAnswer === null || !currentQuestion.isCorrect) && (
+              {(currentQuestion.userAnswer === null ||
+                !currentQuestion.isCorrect) && (
                 <div className="flex flex-col gap-2 rounded-lg p-4 bg-green-400/10">
                   <div className="flex flex-col gap-2 justify-center">
-                    <p className="font-body lg:text-lg flex items-center gap-2 text-green-400">                  <BadgeCheck className="w-5 h-5" />
-                    Correct Answer:</p>
+                    <p className="font-body lg:text-lg flex items-center gap-2 text-green-400">
+                      {" "}
+                      <BadgeCheck className="w-5 h-5" />
+                      Correct Answer:
+                    </p>
                     <p className="font-body text-neutral-50 lg:text-xl">
-                    {currentQuestion.options[currentQuestion.correctAnswer]}
-                  </p>
+                      {currentQuestion.options[currentQuestion.correctAnswer]}
+                    </p>
                   </div>
                 </div>
               )}
             </div>
-            <div className={`flex flex-col gap-2 rounded-lg p-4 ${currentQuestion.isCorrect
-                ? "bg-green-400/10"
-                : currentQuestion.userAnswer === null
+            <div
+              className={`flex flex-col gap-2 rounded-lg p-4 ${
+                currentQuestion.isCorrect
+                  ? "bg-green-400/10"
+                  : currentQuestion.userAnswer === null
                   ? "bg-neutral-400/10"
                   : "bg-blue-400/10"
-              }`}>
+              }`}
+            >
               <div className="flex flex-col gap-2 justify-center">
-                <p className={`font-body lg:text-lg flex items-center gap-2 ${currentQuestion.isCorrect
-                    ? "text-green-400"
-                    : currentQuestion.userAnswer === null
+                <p
+                  className={`font-body lg:text-lg flex items-center gap-2 ${
+                    currentQuestion.isCorrect
+                      ? "text-green-400"
+                      : currentQuestion.userAnswer === null
                       ? "text-neutral-400"
                       : "text-blue-400"
-                  }`}>
+                  }`}
+                >
                   <BadgeCheck className="w-5 h-5" />
                   Explanation
                 </p>
@@ -330,10 +377,10 @@ export const QuizResults = () => {
         </motion.div>
       </AnimatePresence>
       <div className="flex flex-col gap-1 font-body text-center">
-        <p className="text-neutral-200">Submitted On: {formatDate(resultsData.submittedAt)}</p>
-        <p className="text-neutral-400">
-          Quiz ID: {resultsData.quizId}
+        <p className="text-neutral-200">
+          Submitted On: {formatDate(resultsData.submittedAt)}
         </p>
+        <p className="text-neutral-400">Quiz ID: {resultsData.id}</p>
       </div>
     </div>
   );

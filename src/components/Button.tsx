@@ -55,6 +55,18 @@ function Button({
   const timeoutRef = React.useRef<number | null>(null);
   const glowTimeoutRef = React.useRef<number | null>(null);
 
+  // Vibration API helper function
+  const vibrate = (pattern: number | number[]) => {
+    if ('vibrate' in navigator && typeof navigator.vibrate === 'function') {
+      try {
+        navigator.vibrate(pattern);
+      } catch (error) {
+        // Silently fail if vibration is not supported or blocked
+        console.debug('Vibration not supported or blocked:', error);
+      }
+    }
+  };
+
   const handlePress = () => {
     if (!holdToConfirm) return;
 
@@ -65,9 +77,19 @@ function Button({
     }
 
     setIsHolding(true);
+    
+    // Initial vibration when hold starts
+    vibrate(50);
+    
     intervalRef.current = window.setInterval(() => {
       setProgress((prev) => {
         const newProgress = Math.min(prev + 10, 100);
+        
+        // Vibrate at 50% progress (halfway)
+        if (newProgress === 50) {
+          vibrate(30);
+        }
+        
         if (newProgress === 100) {
           glowTimeoutRef.current = window.setTimeout(() => {
             setShowGlow(true);
@@ -78,6 +100,9 @@ function Button({
     }, 100);
 
     timeoutRef.current = window.setTimeout(() => {
+      // Success vibration pattern when hold completes
+      vibrate([100, 50, 100]);
+      
       if (onHoldComplete) {
         onHoldComplete();
       }
@@ -87,11 +112,23 @@ function Button({
 
   const handleRelease = () => {
     if (!holdToConfirm) return;
+    
+    // Vibrate briefly if hold was cancelled (not completed)
+    if (isHolding && progress < 100) {
+      vibrate(25);
+    }
+    
     reset();
   };
 
   const handleLeave = () => {
     if (!holdToConfirm) return;
+    
+    // Vibrate briefly if hold was cancelled (not completed)
+    if (isHolding && progress < 100) {
+      vibrate(25);
+    }
+    
     reset();
   };
 

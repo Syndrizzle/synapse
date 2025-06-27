@@ -3,16 +3,9 @@ import { useIsMobile } from "../hooks/useIsMobile";
 import { Button } from "./Button";
 import { Cross as Hamburger } from "hamburger-react";
 import { AnimatePresence, motion } from "motion/react";
+import { type QuizNavProps } from "../types/quiz";
 
-interface QuizNavProps {
-  totalQuestions: number;
-  currentQuestionIndex: number;
-  answers: (number | null)[];
-  visited: boolean[];
-  onGoToQuestion: (index: number) => void;
-}
-
-export const QuizNav = ({ totalQuestions, currentQuestionIndex, answers, visited, onGoToQuestion }: QuizNavProps) => {
+export const QuizNav = ({ currentQuestionIndex, answers, visited, onGoToQuestion }: QuizNavProps) => {
   const isMobile = useIsMobile();
   const [isOpen, setOpen] = useState(false);
 
@@ -29,7 +22,7 @@ export const QuizNav = ({ totalQuestions, currentQuestionIndex, answers, visited
     return "outline"; // Not visited
   };
 
-  const navButtons = Array.from({ length: totalQuestions }, (_, i) => (
+  const navButtons = Array.from({ length: answers.length }, (_, i) => (
     <Button
       key={i}
       className="flex items-center justify-center"

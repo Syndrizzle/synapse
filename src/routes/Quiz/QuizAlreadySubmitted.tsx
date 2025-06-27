@@ -1,17 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { ArrowRight, CircleQuestionMark, LoaderCircle } from "lucide-react";
+import { ArrowRight, CircleQuestionMark } from "lucide-react";
 import CountUp from "react-countup";
 import { Button } from "../../components/Button";
 import { getQuizResults } from "../../services/api";
-
-interface QuizResultsData {
-  quizId: string;
-  totalQuestions: number;
-  correctAnswers: number;
-  percentage: number;
-}
+import { type QuizResultsData, type QuestionResult } from "../../types/quiz";
+import { Loading } from "../../components/Loading";
 
 export const QuizAlreadySubmitted = () => {
     const { quizId } = useParams<{ quizId: string }>();
@@ -28,9 +23,18 @@ export const QuizAlreadySubmitted = () => {
 
         const fetchResults = async () => {
             try {
-                const response = await getQuizResults(quizId);
-                if (response.success) {
-                    setResultsData(response.data);
+        const response = await getQuizResults(quizId);
+        if (response.success) {
+          // Map the server response to our expected interface
+          const mappedData = {
+            ...response.data,
+            id: response.data.id || response.data.quizId || quizId,
+            questionResults: response.data.questionResults?.map((result: QuestionResult & { questionId?: string }, index: number) => ({
+              ...result,
+              id: result.id || result.questionId || `question-${index}`
+            })) || []
+          };
+          setResultsData(mappedData);
                 } else {
                     toast.error("Failed to load results.");
                     navigate("/");
@@ -48,29 +52,13 @@ export const QuizAlreadySubmitted = () => {
 
     if (loading || !resultsData) {
         return (
-            <div className="bg-neutral-900 min-h-screen flex flex-col items-center justify-center">
-                <header className="absolute top-0 right-0 left-0 mt-12 flex items-center w-full justify-center">
-                    <img
-                        src="/logo.svg"
-                        alt="Synapse Logo"
-                        className="md:h-10 h-8 w-auto object-cover m-2"
-                    />
-                </header>
-                <div className="flex flex-row items-center justify-center gap-4">
-                    <div className="animate-spin text-neutral-50">
-                        <LoaderCircle className="md:w-12 md:h-12 w-8 h-8" />
-                    </div>
-                    <p className="font-heading md:text-5xl text-4xl text-neutral-50">
-                        Loading...
-                    </p>
-                </div>
-            </div>
+            <Loading />
         );
     }
 
     return (
-        <div className="bg-neutral-900 min-h-screen flex flex-col items-center justify-center p-6 gap-4">
-            <header className="fixed top-0 left-0 right-0  flex items-center z-50 w-full justify-center mt-6">
+        <div className="bg-neutral-900 min-h-screen flex flex-col items-center justify-start p-6 gap-4">
+            <header className="flex items-center z-50 w-full justify-center mt-4 mb-8">
                 <img
                     src="/logo.svg"
                     alt="Synapse Logo"
@@ -100,7 +88,7 @@ export const QuizAlreadySubmitted = () => {
                                 duration={1.5}
                                 delay={0.5}
                             />
-                        </span> / {resultsData.totalQuestions}
+                        </span> / {resultsData.questionResults.length}
                     </p>
                 </div>
                 <div className="bg-neutral-800 rounded-lg flex flex-col p-6 lg:gap-4 gap-2 justify-center col-span-2 col-start-3">
@@ -122,7 +110,7 @@ export const QuizAlreadySubmitted = () => {
                     <p className="font-heading text-neutral-50 text-3xl lg:text-4xl lg:w-1/2 text-center lg:text-left">
                         Interested? Check the full result for more details.
                     </p>
-                    <a href={`/quiz/${resultsData.quizId}/results`} className="w-full lg:w-auto">
+                    <a href={`/quiz/${resultsData.id}/results`} className="w-full lg:w-auto">
 
                         <Button>
                             <ArrowRight />

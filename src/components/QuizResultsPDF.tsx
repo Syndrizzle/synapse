@@ -43,34 +43,7 @@ Font.register({
   ],
 });
 
-interface QuestionResult {
-  questionId: string;
-  userAnswer: number | null;
-  correctAnswer: number;
-  isCorrect: boolean;
-  question: string;
-  options: string[];
-  explanation: string;
-  topic: string;
-}
-
-interface QuizResultsData {
-  description: string;
-  quizId: string;
-  submittedAt: string;
-  totalQuestions: number;
-  correctAnswers: number;
-  incorrectAnswers: number;
-  score: number;
-  percentage: number;
-  timeTaken: number;
-  questionResults: QuestionResult[];
-  performance: 'excellent' | 'good' | 'average' | 'needs_improvement';
-}
-
-interface QuizResultsPDFProps {
-  resultsData: QuizResultsData;
-}
+import { type QuizResultsPDFProps } from "../types/quiz";
 
 // Create styles
 const styles = StyleSheet.create({
@@ -443,7 +416,7 @@ export const QuizResultsPDF = ({ resultsData }: QuizResultsPDFProps) => (
         <View style={styles.statBox}>
           <Text style={styles.statLabel}>Correct Answers</Text>
           <Text style={styles.statValueGreen}>
-            {resultsData.correctAnswers} / {resultsData.totalQuestions}
+            {resultsData.correctAnswers} / {resultsData.questionResults.length}
           </Text>
         </View>
         <View style={styles.statBox}>
@@ -459,7 +432,7 @@ export const QuizResultsPDF = ({ resultsData }: QuizResultsPDFProps) => (
         </View>
         <View style={styles.statBox}>
           <Text style={styles.statLabel}>Total Questions</Text>
-          <Text style={styles.statValue}>{resultsData.totalQuestions}</Text>
+          <Text style={styles.statValue}>{resultsData.questionResults.length}</Text>
         </View>
       </View>
 
@@ -474,7 +447,7 @@ export const QuizResultsPDF = ({ resultsData }: QuizResultsPDFProps) => (
               ? [styles.navButton, styles.navButtonCorrect]
               : [styles.navButton, styles.navButtonIncorrect];
             return (
-              <View key={result.questionId} style={buttonStyle}>
+              <View key={result.id} style={buttonStyle}>
                 <Text style={styles.navButtonText}>{index + 1}.</Text>
               </View>
             );
@@ -488,7 +461,7 @@ export const QuizResultsPDF = ({ resultsData }: QuizResultsPDFProps) => (
           Submitted On: {formatDate(resultsData.submittedAt)}
         </Text>
         <Text style={styles.quizID}>
-          Quiz ID: {resultsData.quizId}
+          Quiz ID: {resultsData.id}
         </Text>
       </View>
 
@@ -501,7 +474,7 @@ export const QuizResultsPDF = ({ resultsData }: QuizResultsPDFProps) => (
 
     {/* Questions Pages */}
     {resultsData.questionResults.map((question, index) => (
-      <Page key={question.questionId} size="A4" style={styles.page}>
+      <Page key={question.id} size="A4" style={styles.page}>
         <View style={styles.header}>
           <Svg width="125" height="30" viewBox="0 0 163 39" fill="none" >
             <Path d="M54.9715 30.8246C54.4147 30.8246 53.7884 30.769 53.0924 30.6578C52.4242 30.5465 51.7839 30.4075 51.1715 30.2406C50.5868 30.0738 50.1275 29.893 49.7934 29.6984C49.5985 29.5872 49.4454 29.4759 49.3341 29.3647C49.2506 29.2257 49.2088 29.0032 49.2088 28.6973L49 22.1487C49 21.5925 49.181 21.3144 49.5429 21.3144C49.8491 21.3144 50.0579 21.5647 50.1693 22.0652L50.5451 23.6503C51.4916 27.6267 53.2594 29.615 55.8485 29.615C57.2404 29.615 58.3401 29.1562 59.1474 28.2385C59.9826 27.293 60.4002 25.9722 60.4002 24.2759C60.4002 22.6353 59.9687 21.1059 59.1057 19.6877C58.2705 18.2695 56.9203 16.8652 55.055 15.4749C52.9949 14.0011 51.4916 12.5829 50.5451 11.2203C49.5985 9.82995 49.1253 8.35615 49.1253 6.79893C49.1253 4.74118 49.8352 3.10053 51.255 1.877C52.7026 0.625668 54.54 0 56.7672 0C57.6023 0 58.4097 0.0973258 59.1892 0.291977C59.9687 0.486631 60.609 0.764706 61.1101 1.1262C61.2771 1.23743 61.4024 1.36257 61.4859 1.5016C61.5973 1.64064 61.653 1.82139 61.653 2.04385L61.7782 8.34225C61.7782 8.81497 61.5973 9.05134 61.2354 9.05134C60.9848 9.05134 60.8039 8.85668 60.6925 8.46738L60.4002 7.4246C59.7877 5.28342 59.1474 3.7262 58.4793 2.75294C57.839 1.75187 56.9064 1.25134 55.6814 1.25134C54.4843 1.25134 53.5239 1.64064 52.8001 2.41925C52.1041 3.19786 51.7561 4.29626 51.7561 5.71444C51.7561 6.91016 52.1458 8.05027 52.9253 9.13476C53.7048 10.2193 55.069 11.5401 57.0177 13.0973C59.1057 14.7936 60.6229 16.4342 61.5694 18.0193C62.5438 19.5765 63.031 21.2449 63.031 23.0246C63.031 24.5818 62.683 25.9444 61.987 27.1123C61.2911 28.2802 60.3306 29.1979 59.1057 29.8652C57.9086 30.5048 56.5305 30.8246 54.9715 30.8246Z" fill="#fafafa" />

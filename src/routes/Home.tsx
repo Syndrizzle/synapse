@@ -1,18 +1,16 @@
 import LottieAnimation from "../components/LottieAnimation";
 import UploadLottie from "../animations/upload.json";
-import { useDropzone, type FileRejection } from "react-dropzone";
 import { useNavigate } from "react-router-dom";
 import { useFileStore } from "../stores/fileStore";
-import { generateThumbnail } from "../lib/pdf";
-import { useCallback, useEffect, useState, useRef } from "react";
-import toast from "react-hot-toast";
+import { useEffect, useState, useRef } from "react";
 import { checkApiHealth } from "../services/api";
 import { siGithub } from "simple-icons";
 import { Loader2 } from "lucide-react";
+import { useFileUpload } from "../hooks/useFileUpload";
 
 export const Home = () => {
   const navigate = useNavigate();
-  const { files, addFiles, maxFiles, maxFileSize, allowedFileTypes, capacityLoaded } = useFileStore();
+  const { maxFiles, maxFileSize, capacityLoaded } = useFileStore();
   const [apiStatus, setApiStatus] = useState<"healthy" | "unhealthy" | "loading">(
     "loading"
   );
@@ -41,64 +39,8 @@ export const Home = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const onDrop = useCallback(
-    async (acceptedFiles: File[], fileRejections: FileRejection[]) => {
-      fileRejections.forEach(({ file, errors }) => {
-        errors.forEach((error) => {
-          if (error.code === "file-too-large") {
-            toast.error(
-              `File "${file.name}" is too large. Max size is ${
-                maxFileSize / (1024 * 1024)
-              }MB.`
-            );
-          } else {
-            toast.error(error.message);
-          }
-        });
-      });
-
-
-      // Ignore duplicates first
-      const existingIds = new Set(files.map((f) => f.id));
-      const uniqueIncoming = acceptedFiles.filter(
-        (file) => !existingIds.has(`${file.name}-${file.lastModified}`)
-      );
-
-      const remainingFiles = maxFiles - files.length;
-      const filesToAccept = uniqueIncoming.slice(0, remainingFiles);
-      const rejectedCount = uniqueIncoming.length - filesToAccept.length;
-
-      if (rejectedCount > 0) {
-        toast.error(
-          `${rejectedCount} file(s) were not accepted because the maximum of ${maxFiles} files has been reached.`
-        );
-      }
-
-      if (filesToAccept.length === 0) return;
-
-      const fileDataPromises = filesToAccept.map(async (file) => {
-        const thumbnail = await generateThumbnail(file);
-        return {
-          id: `${file.name}-${file.lastModified}`,
-          file,
-          thumbnail,
-        };
-      });
-      const fileData = await Promise.all(fileDataPromises);
-      addFiles(fileData);
-      navigate("/upload");
-    },
-    [files, addFiles, maxFiles, maxFileSize, navigate]
-  );
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: capacityLoaded ? allowedFileTypes.reduce<Record<string, string[]>>((acc, type) => {
-      acc[type] = [`.${type.split('/')[1]}`];
-      return acc;
-    }, {}) : {},
-    maxSize: maxFileSize,
-    disabled: !capacityLoaded || files.length >= maxFiles,
+  const { getRootProps, getInputProps, isDragActive } = useFileUpload({
+    onDropComplete: () => navigate("/upload"),
   });
 
   return (

@@ -1,18 +1,5 @@
 import { motion, AnimatePresence } from "motion/react";
-
-interface Question {
-  id: string;
-  question: string;
-  options: string[];
-  topic: string;
-}
-
-interface QuizAreaProps {
-  question: Question;
-  questionIndex: number;
-  selectedAnswer: number | null;
-  onSelectAnswer: (answerIndex: number) => void;
-}
+import { type QuizAreaProps } from "../types/quiz";
 
 export const QuizArea = ({ question, questionIndex, selectedAnswer, onSelectAnswer }: QuizAreaProps) => {
   return (
