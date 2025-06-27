@@ -36,10 +36,9 @@ class RedisService {
             } else {
                 // Fallback to individual options if URL parsing fails
                 this.client = new Redis({
-                    host: process.env.REDIS_HOST || 'localhost',
-                    port: parseInt(process.env.REDIS_PORT, 10) || 6379,
-                    password: process.env.REDIS_PASSWORD || undefined,
-                    db: parseInt(process.env.REDIS_DB, 10) || 0,
+                    host: 'localhost',
+                    port: 6379,
+                    db: 0,
                     ...redisOptions,
                 });
             }

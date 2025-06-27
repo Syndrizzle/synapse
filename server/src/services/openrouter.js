@@ -14,7 +14,7 @@ class OpenRouterService {
         this.model = config.openrouter.model;
         this.timeout = config.openrouter.timeout;
         this.maxRetries = config.openrouter.maxRetries;
-        this.pdfEngine = 'pdf-text'; // Always use pdf-text engine
+        this.pdfEngine = config.openrouter.pdfProcessingEngine;
     }
 
     /**
@@ -176,8 +176,6 @@ Generate a quiz that follows the structured output format with the required fiel
                 headers: {
                     'Authorization': `Bearer ${this.apiKey}`,
                     'Content-Type': 'application/json',
-                    'HTTP-Referer': config.openrouter.httpReferer,
-                    'X-Title': config.openrouter.appName,
                 },
                 body: JSON.stringify(requestBody),
                 signal: controller.signal,
@@ -370,8 +368,8 @@ Generate a quiz that follows the structured output format with the required fiel
                         content: testPrompt,
                     },
                 ],
-                temperature: 0.7,
-                max_tokens: 200,
+                temperature: config.openrouter.temperature,
+                max_tokens: 500,
             };
 
             const response = await fetch(`${this.baseUrl}/chat/completions`, {
