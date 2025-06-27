@@ -6,6 +6,20 @@ const api = axios.create({
   baseURL: config.apiBaseUrl,
 });
 
+// Add a response interceptor
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 429) {
+      // Redirect to the rate-limited page
+      window.location.href = "/ratelimited";
+      // Prevent further error handling in components
+      return new Promise(() => {}); 
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const generateQuiz = async (
   files: { file: File }[],
   onUploadProgress: (progress: number) => void

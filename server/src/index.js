@@ -93,8 +93,7 @@ function configureMiddleware() {
         limit: config.security.maxRequestSize,
     }));
     
-    // Global rate limiting
-    app.use(getRateLimiter());
+    
     
     logger.info('✅ Middleware configured');
 }
@@ -107,7 +106,7 @@ function setupRoutes() {
     
     // Health check endpoint
     if (config.monitoring.enableHealthCheck) {
-        app.get(config.monitoring.healthCheckPath, async (req, res) => {
+        app.get(config.monitoring.healthCheckPath, getRateLimiter('health'), async (req, res) => {
             try {
                 // Base health payload
                 const healthStatus = {
@@ -174,7 +173,7 @@ function setupRoutes() {
     });
 
     // Setup route modules
-    app.use('/api/quiz', quizRoutes);
+    app.use('/api/quiz', getRateLimiter('authorized'), quizRoutes);
 
     // Catch-all for undefined API routes
     app.use('/api', (req, res, next) => {
@@ -190,21 +189,8 @@ function setupRoutes() {
         }
     });
 
-    // Root endpoint
-    app.get('/', (req, res) => {
-        res.json({
-            name: 'Synapse Server',
-            version: process.env.npm_package_version || '1.0.0',
-            status: 'operational',
-            environment: config.server.nodeEnv,
-            endpoints: {
-                health: config.monitoring.healthCheckPath,
-                api: '/api',
-            },
-            documentation: 'https://github.com/syndrizzle/synapse',
-            timestamp: new Date().toISOString(),
-        });
-    });
+    // Apply a general rate limiter to all other requests
+    app.use(getRateLimiter('general'));
 
     logger.info('✅ Routes configured');
 }

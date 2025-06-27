@@ -16,7 +16,7 @@ export const QuizStart = () => {
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { setQuizId } = useFileStore();
+  const { setQuizId, clearFiles } = useFileStore();
 
   useEffect(() => {
     if (quizId) {
@@ -122,7 +122,10 @@ export const QuizStart = () => {
       <div className="flex md:flex-row flex-col items-center justify-center md:gap-4 gap-2 w-full md:w-2/3 lg:w-1/2">
         <Button
           variant="destructive"
-          onClick={() => navigate("/")}
+          onClick={() => {
+            clearFiles();
+            navigate("/");
+          }}
         >
           <ArrowLeft className="w-6 h-6" strokeWidth={2.5} />
           Back

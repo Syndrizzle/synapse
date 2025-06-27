@@ -8,7 +8,35 @@ import logger from '../utils/logger.js';
 let rateLimiter = (req, res, next) => next(); // Default no-op
 
 /**
- * Initializes a single, simple rate limiter
+ * Creates a rate limiter with a specific configuration.
+ * @param {object} options - The options for the rate limiter.
+ * @param {number} options.windowMs - The time window in milliseconds.
+ * @param {number} options.max - The max number of requests.
+ * @param {string} options.message - The message to send when the limit is exceeded.
+ * @param {object} options.store - The store to use for the rate limiter.
+ * @returns {import('express-rate-limit').RateLimitRequestHandler}
+ */
+const createRateLimiter = ({ windowMs, max, message, store }) => {
+    return rateLimit({
+        windowMs,
+        max,
+        message: {
+            error: true,
+            code: 'RATE_LIMITED',
+            message,
+            timestamp: new Date().toISOString(),
+        },
+        store,
+        standardHeaders: true,
+        legacyHeaders: false,
+    });
+};
+
+// Create a factory for rate limiters to avoid code duplication
+const limiters = {};
+
+/**
+ * Initializes the rate limiters for different routes.
  */
 export function initializeRateLimiters() {
     if (!config.rateLimit.enabled) {
@@ -16,75 +44,81 @@ export function initializeRateLimiters() {
         return;
     }
 
-    logger.info('Initializing rate limiter...');
+    logger.info('Initializing rate limiters...');
 
-    let generalStore, authorizedStore;
-    // Use Redis for storage in production for persistence across restarts/instances
+    let store = {};
     if (config.server.isProduction) {
         try {
             const client = redisService.getClient();
-            generalStore = new RedisStore({
-                // @ts-ignore - `rate-limit-redis` types might not match `redis` v4
-                sendCommand: (...args) => client.call(...args),
-                prefix: 'rl:general:',
-            });
-            authorizedStore = new RedisStore({
-                // @ts-ignore
-                sendCommand: (...args) => client.call(...args),
-                prefix: 'rl:authorized:',
-            });
+            store.general = new RedisStore({ sendCommand: (...args) => client.call(...args), prefix: 'rl:general:' });
+            store.health = new RedisStore({ sendCommand: (...args) => client.call(...args), prefix: 'rl:health:' });
+            store.quiz = new RedisStore({ sendCommand: (...args) => client.call(...args), prefix: 'rl:quiz:' });
+            store.authorized = new RedisStore({ sendCommand: (...args) => client.call(...args), prefix: 'rl:authorized:' });
+            logger.info('Rate limiting will use Redis store.');
         } catch (error) {
             logger.error('Failed to create RedisStore. Falling back to in-memory store.', { error: error.message });
-            // Fallback to memory store if RedisStore fails
         }
-    }
-
-    const generalLimiter = rateLimit({
-        windowMs: config.rateLimit.windowMinutes * 60 * 1000,
-        max: config.rateLimit.requests,
-        message: {
-            error: true,
-            code: 'RATE_LIMITED',
-            message: `Too many requests. Please try again after ${config.rateLimit.windowMinutes} minutes.`,
-            timestamp: new Date().toISOString(),
-        },
-        store: generalStore,
-        standardHeaders: true,
-        legacyHeaders: false,
-    });
-
-    const authorizedLimiter = rateLimit({
-        windowMs: config.rateLimit.authorizedWindowMinutes * 60 * 1000,
-        max: config.rateLimit.authorizedRequests,
-        message: {
-            error: true,
-            code: 'RATE_LIMITED',
-            message: `Too many requests. Please try again after ${config.rateLimit.authorizedWindowMinutes} minutes.`,
-            timestamp: new Date().toISOString(),
-        },
-        store: authorizedStore,
-        standardHeaders: true,
-        legacyHeaders: false,
-    });
-
-    rateLimiter = (req, res, next) => {
-        const origin = req.get('origin');
-        if (origin && config.security.authorizedDomains.includes(origin)) {
-            return authorizedLimiter(req, res, next);
-        }
-        return generalLimiter(req, res, next);
-    };
-
-    if (config.server.isProduction) {
-        logger.info('Rate limiting will use Redis store.');
     } else {
         logger.info('Rate limiting will use in-memory store (development mode).');
     }
 
-    logger.info(`Rate limiter initialized: ${config.rateLimit.requests} requests per ${config.rateLimit.windowMinutes} minutes`);
+    limiters.general = createRateLimiter({
+        windowMs: config.rateLimit.general.windowMinutes * 60 * 1000,
+        max: config.rateLimit.general.requests,
+        message: `Too many requests. Please try again after ${config.rateLimit.general.windowMinutes} minutes.`,
+        store: store.general,
+    });
+
+    limiters.health = createRateLimiter({
+        windowMs: config.rateLimit.health.windowMinutes * 60 * 1000,
+        max: config.rateLimit.health.requests,
+        message: `Too many health check requests. Please try again after ${config.rateLimit.health.windowMinutes} minutes.`,
+        store: store.health,
+    });
+
+    limiters.quiz = createRateLimiter({
+        windowMs: config.rateLimit.quiz.windowMinutes * 60 * 1000,
+        max: config.rateLimit.quiz.requests,
+        message: `Too many quiz requests. Please try again after ${config.rateLimit.quiz.windowMinutes} minutes.`,
+        store: store.quiz,
+    });
+
+    limiters.authorized = createRateLimiter({
+        windowMs: config.rateLimit.authorized.windowMinutes * 60 * 1000,
+        max: config.rateLimit.authorized.requests,
+        message: `Too many requests. Please try again after ${config.rateLimit.authorized.windowMinutes} minutes.`,
+        store: store.authorized,
+    });
+
+    logger.info(`General Rate Limiter: ${config.rateLimit.general.requests} requests per ${config.rateLimit.general.windowMinutes} min`);
+    logger.info(`Health Check Rate Limiter: ${config.rateLimit.health.requests} requests per ${config.rateLimit.health.windowMinutes} min`);
+    logger.info(`Quiz Rate Limiter: ${config.rateLimit.quiz.requests} requests per ${config.rateLimit.quiz.windowMinutes} min`);
+    logger.info(`Authorized Rate Limiter: ${config.rateLimit.authorized.requests} requests per ${config.rateLimit.authorized.windowMinutes} min`);
 }
 
 /**
- * Get the rate limiter middleware
+ * Middleware to apply the correct rate limiter based on the route and origin.
+ * @param {string} routeType - The type of route ('health', 'quiz', 'general').
+ * @returns {import('express').RequestHandler}
  */
-export const getRateLimiter = () => rateLimiter;
+export const getRateLimiter = (routeType) => (req, res, next) => {
+    if (!config.rateLimit.enabled) {
+        return next();
+    }
+
+    const origin = req.get('origin');
+    const isAuthorized = origin && config.security.authorizedDomains.includes(origin);
+
+    if (isAuthorized) {
+        switch (routeType) {
+            case 'health':
+                return limiters.health(req, res, next);
+            case 'quiz':
+                return limiters.quiz(req, res, next);
+            default:
+                return limiters.authorized(req, res, next);
+        }
+    }
+
+    return limiters.general(req, res, next);
+};

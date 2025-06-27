@@ -50,7 +50,7 @@ const upload = multer({
  * POST /api/quiz/generate
  * Upload PDFs and generate MCQs
  */
-router.post('/generate', getRateLimiter(), upload.array('pdfs', config.upload.maxFilesCount), async (req, res, next) => {
+router.post('/generate', getRateLimiter('quiz'), upload.array('pdfs', config.upload.maxFilesCount), async (req, res, next) => {
     const quizId = uuidv4();
     try {
         logger.info(`[${quizId}] Quiz generation request received.`);
@@ -187,7 +187,7 @@ router.get('/:quizId', async (req, res) => {
  * POST /api/quiz/:quizId/submit
  * Submit quiz answers and get results
  */
-router.post('/:quizId/submit', getRateLimiter(), async (req, res) => {
+router.post('/:quizId/submit', async (req, res) => {
     try {
         const { quizId } = req.params;
         const { answers, timeTaken } = req.body;
