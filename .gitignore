@@ -22,7 +22,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-server/.env
 pnpm-lock.yaml
-public/example.webp
 .env

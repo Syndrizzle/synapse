@@ -79,7 +79,17 @@ export const configureCORS = () => {
 export const applySecurity = (app) => {
     // Basic helmet with minimal config
     app.use(helmet({
-        contentSecurityPolicy: config.server.isDevelopment ? false : undefined,
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'", "data:"],
+                scriptSrc: ["'self'", "'unsafe-eval'", "https://cdnjs.cloudflare.com", "http://cdnjs.cloudflare.com"],
+                workerSrc: ["'self'", "blob:", "https://cdnjs.cloudflare.com"],
+                connectSrc: ["'self'", "data:", "*"],
+                imgSrc: ["'self'", "data:", "blob:"],
+                styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+                fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
+            },
+        },
     }));
     
     // Basic compression

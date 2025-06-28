@@ -57,8 +57,8 @@ const config = {
     openrouter: {
         apiKey: process.env.OPENROUTER_API_KEY || '',
         baseUrl: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1',
-        model: process.env.OPENROUTER_MODEL || 'google/gemma-3-27b-it:free',
-        pdfProcessingEngine: process.env.PDF_PROCESSING_ENGINE || 'pdf-text',
+        model: process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash',
+        pdfProcessingEngine: process.env.PDF_PROCESSING_ENGINE || 'native',
         
         // Advanced settings
         temperature: parseFloatSafe(process.env.MCQ_TEMPERATURE, 0.3, 0.0, 1.0),
@@ -141,14 +141,6 @@ const config = {
     // =================================================================
     development: {
         debugMode: parseBooleanSafe(process.env.DEBUG_MODE, false),
-    },
-
-    // =================================================================
-    // MONITORING & HEALTH CHECKS
-    // =================================================================
-    monitoring: {
-        enableHealthCheck: parseBooleanSafe(process.env.ENABLE_HEALTH_CHECK, true),
-        healthCheckPath: process.env.HEALTH_CHECK_PATH || '/health',
     },
 };
 

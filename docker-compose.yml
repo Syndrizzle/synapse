@@ -1,32 +1,15 @@
 services:
-  frontend:
+  app:
     build:
       context: .
-      dockerfile: Dockerfile.frontend
-    ports:
-      - "5173:5173"
-    environment:
-      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-https://synapse-server.drzl.dev}
-      - VITE_UPLOAD_TIMEOUT=${VITE_UPLOAD_TIMEOUT:-300000}
-      - __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=${__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS:-0.0.0.0}
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5173"]
-      interval: 1m30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  backend:
-    build:
-      context: ./server
-      dockerfile: Dockerfile.backend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - PORT=${PORT:-3000}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-openai/gpt-4.1}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-google/gemini-2.5-flash}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - MIN_QUIZ_LENGTH=${MIN_QUIZ_LENGTH:-5}
       - MAX_QUIZ_LENGTH=${MAX_QUIZ_LENGTH:-50}
@@ -39,13 +22,13 @@ services:
       - HEALTH_RATE_LIMIT_WINDOW_MINUTES=${HEALTH_RATE_LIMIT_WINDOW_MINUTES:-1}
       - AUTHORIZED_RATE_LIMIT_REQUESTS=${AUTHORIZED_RATE_LIMIT_REQUESTS:-50}
       - AUTHORIZED_RATE_LIMIT_WINDOW_MINUTES=${AUTHORIZED_RATE_LIMIT_WINDOW_MINUTES:-1}
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
-      - AUTHORIZED_DOMAINS=${AUTHORIZED_DOMAINS:-http://localhost:5173}
-      - MAX_REQUEST_SIZE=${MAX_REQUEST_SIZE:-10mb}
-      - MAX_FILES_COUNT=${MAX_FILES_COUNT:-7}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
+      - AUTHORIZED_DOMAINS=${AUTHORIZED_DOMAINS:-http://localhost:3000}
+      - MAX_REQUEST_SIZE=${MAX_REQUEST_SIZE:-10485760}
+      - MAX_FILES_COUNT=${MAX_FILES_COUNT:-6}
       - DEBUG_MODE=${DEBUG_MODE:-true}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health"]
       interval: 1m30s
       timeout: 10s
       retries: 3
