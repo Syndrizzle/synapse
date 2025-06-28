@@ -5,7 +5,6 @@ import config from '../config/index.js';
 import openRouterService from '../services/openrouter.js';
 import redisService from '../services/redis.js';
 import logger from '../utils/logger.js';
-import { getRateLimiter } from '../middleware/rateLimit.js';
 import { createError, createSuccess, REDIS_KEYS } from '../models/schemas.js';
 
 /**
@@ -50,7 +49,7 @@ const upload = multer({
  * POST /api/quiz/generate
  * Upload PDFs and generate MCQs
  */
-router.post('/generate', getRateLimiter('quiz'), upload.array('pdfs', config.upload.maxFilesCount), async (req, res, next) => {
+router.post('/generate', upload.array('pdfs', config.upload.maxFilesCount), async (req, res, next) => {
     const quizId = uuidv4();
     try {
         logger.info(`[${quizId}] Quiz generation request received.`);

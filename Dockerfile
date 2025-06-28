@@ -1,28 +1,22 @@
-# Dockerfile
-
-# Build frontend
-FROM node:18-alpine as frontend
+# Stage 1: Build the frontend
+FROM node:22-alpine AS frontend
 WORKDIR /app/client
 COPY client/package*.json ./
-RUN npm install -g pnpm
-RUN pnpm install
-COPY client/ ./
-RUN pnpm build
+RUN npm install
+COPY client/ .
+RUN npm run build
 
-# Build backend
-FROM node:18-alpine as backend
+# Stage 2: Build the backend
+FROM node:22-alpine AS backend
 WORKDIR /app
 COPY server/package*.json ./
 RUN npm install
-COPY server/ ./
+COPY server/ .
 
-# Final image
-FROM node:18-alpine
+# Stage 3: Final image
+FROM node:22-alpine
 WORKDIR /app
-RUN apk add --no-cache curl
 COPY --from=backend /app .
 COPY --from=frontend /app/client/dist ./client/dist
-
 EXPOSE 3000
-
-CMD ["node", "src/index.js"]
+CMD ["npm", "start"]

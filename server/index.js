@@ -106,8 +106,8 @@ function configureMiddleware() {
 function setupRoutes() {
     logger.info('🛣️  Setting up routes...');
 
-    // Health check endpoint
-    app.get('/api/v1/health', getRateLimiter('health'), async (req, res) => {
+// Health check endpoint
+    app.get('/api/v1/health', async (req, res) => {
         try {
             // Base health payload
             const healthStatus = {
@@ -169,7 +169,7 @@ function setupRoutes() {
     // API routes
 
     // Setup route modules
-    app.use('/api/v1/quiz', getRateLimiter('authorized'), quizRoutes);
+    app.use('/api/v1/quiz', getRateLimiter('general'), quizRoutes);
 
     // Catch-all for undefined API routes
     app.use('/api/v1', (req, res, next) => {
@@ -185,9 +185,6 @@ function setupRoutes() {
         }
     });
 
-    // Apply a general rate limiter to all other requests
-    app.use(getRateLimiter('general'));
-
     // =================================================================
     // SERVE FRONTEND
     // =================================================================
@@ -196,13 +193,15 @@ function setupRoutes() {
     const __dirname = path.dirname(__filename);
 
     // Serve static files from the React app
-    app.use(express.static(path.join(__dirname, '../../client/dist')));
+    const clientDistPath = path.join(__dirname, 'static');
+    app.use(express.static(clientDistPath));
 
     // The "catchall" handler: for any request that doesn't
     // match one above, send back React's index.html file.
     app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+        res.sendFile(path.resolve(clientDistPath, 'index.html'));
     });
+
 
     logger.info('✅ Routes configured');
 }

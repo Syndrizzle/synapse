@@ -1,14 +1,12 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/syndrizzle/synapse:latest
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - PORT=${PORT:-3000}
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - OPENROUTER_MODEL=${OPENROUTER_MODEL:-google/gemini-2.5-flash}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - MIN_QUIZ_LENGTH=${MIN_QUIZ_LENGTH:-5}

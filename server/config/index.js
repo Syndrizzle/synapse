@@ -101,20 +101,8 @@ const config = {
     rateLimit: {
         enabled: parseBooleanSafe(process.env.ENABLE_RATE_LIMITING, true),
         general: {
-            requests: parseIntSafe(process.env.GENERAL_RATE_LIMIT_REQUESTS, 20, 1, 1000),
-            windowMinutes: parseIntSafe(process.env.GENERAL_RATE_LIMIT_WINDOW_MINUTES, 1, 1, 60),
-        },
-        quiz: {
-            requests: parseIntSafe(process.env.QUIZ_RATE_LIMIT_REQUESTS, 100, 1, 10000),
-            windowMinutes: parseIntSafe(process.env.QUIZ_RATE_LIMIT_WINDOW_MINUTES, 60, 1, 1440),
-        },
-        health: {
-            requests: parseIntSafe(process.env.HEALTH_RATE_LIMIT_REQUESTS, 120, 1, 10000),
-            windowMinutes: parseIntSafe(process.env.HEALTH_RATE_LIMIT_WINDOW_MINUTES, 1, 1, 60),
-        },
-        authorized: {
-            requests: parseIntSafe(process.env.AUTHORIZED_RATE_LIMIT_REQUESTS, 200, 1, 10000),
-            windowMinutes: parseIntSafe(process.env.AUTHORIZED_RATE_LIMIT_WINDOW_MINUTES, 1, 1, 60),
+            requests: parseIntSafe(process.env.RATE_LIMIT_REQUESTS, 50, 1, 1000),
+            windowMinutes: parseIntSafe(process.env.RATE_LIMIT_WINDOW_MINUTES, 1, 1, 60),
         },
     },
 

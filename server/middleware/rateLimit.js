@@ -46,14 +46,11 @@ export function initializeRateLimiters() {
 
     logger.info('Initializing rate limiters...');
 
-    let store = {};
+    let store;
     if (config.server.isProduction) {
         try {
             const client = redisService.getClient();
-            store.general = new RedisStore({ sendCommand: (...args) => client.call(...args), prefix: 'rl:general:' });
-            store.health = new RedisStore({ sendCommand: (...args) => client.call(...args), prefix: 'rl:health:' });
-            store.quiz = new RedisStore({ sendCommand: (...args) => client.call(...args), prefix: 'rl:quiz:' });
-            store.authorized = new RedisStore({ sendCommand: (...args) => client.call(...args), prefix: 'rl:authorized:' });
+            store = new RedisStore({ sendCommand: (...args) => client.call(...args), prefix: 'rl:general:' });
             logger.info('Rate limiting will use Redis store.');
         } catch (error) {
             logger.error('Failed to create RedisStore. Falling back to in-memory store.', { error: error.message });
@@ -66,39 +63,17 @@ export function initializeRateLimiters() {
         windowMs: config.rateLimit.general.windowMinutes * 60 * 1000,
         max: config.rateLimit.general.requests,
         message: `Too many requests. Please try again after ${config.rateLimit.general.windowMinutes} minutes.`,
-        store: store.general,
-    });
-
-    limiters.health = createRateLimiter({
-        windowMs: config.rateLimit.health.windowMinutes * 60 * 1000,
-        max: config.rateLimit.health.requests,
-        message: `Too many health check requests. Please try again after ${config.rateLimit.health.windowMinutes} minutes.`,
-        store: store.health,
-    });
-
-    limiters.quiz = createRateLimiter({
-        windowMs: config.rateLimit.quiz.windowMinutes * 60 * 1000,
-        max: config.rateLimit.quiz.requests,
-        message: `Too many quiz requests. Please try again after ${config.rateLimit.quiz.windowMinutes} minutes.`,
-        store: store.quiz,
-    });
-
-    limiters.authorized = createRateLimiter({
-        windowMs: config.rateLimit.authorized.windowMinutes * 60 * 1000,
-        max: config.rateLimit.authorized.requests,
-        message: `Too many requests. Please try again after ${config.rateLimit.authorized.windowMinutes} minutes.`,
-        store: store.authorized,
+        store,
     });
 
     logger.info(`General Rate Limiter: ${config.rateLimit.general.requests} requests per ${config.rateLimit.general.windowMinutes} min`);
-    logger.info(`Health Check Rate Limiter: ${config.rateLimit.health.requests} requests per ${config.rateLimit.health.windowMinutes} min`);
-    logger.info(`Quiz Rate Limiter: ${config.rateLimit.quiz.requests} requests per ${config.rateLimit.quiz.windowMinutes} min`);
-    logger.info(`Authorized Rate Limiter: ${config.rateLimit.authorized.requests} requests per ${config.rateLimit.authorized.windowMinutes} min`);
 }
 
 /**
- * Middleware to apply the correct rate limiter based on the route and origin.
- * @param {string} routeType - The type of route ('health', 'quiz', 'general').
+ * Middleware to apply rate limiter based on route type.
+ * Health endpoints for static files have no rate limiting.
+ * All other endpoints use the general rate limiter (3 requests per minute).
+ * @param {string} routeType - The type of route ('health', 'general').
  * @returns {import('express').RequestHandler}
  */
 export const getRateLimiter = (routeType) => (req, res, next) => {
@@ -106,19 +81,11 @@ export const getRateLimiter = (routeType) => (req, res, next) => {
         return next();
     }
 
-    const origin = req.get('origin');
-    const isAuthorized = origin && config.security.authorizedDomains.includes(origin);
-
-    if (isAuthorized) {
-        switch (routeType) {
-            case 'health':
-                return limiters.health(req, res, next);
-            case 'quiz':
-                return limiters.quiz(req, res, next);
-            default:
-                return limiters.authorized(req, res, next);
-        }
+    // No rate limiting for health checks on static files
+    if (routeType === 'health') {
+        return next();
     }
 
+    // Apply general rate limiter for all other requests
     return limiters.general(req, res, next);
 };
