@@ -349,11 +349,13 @@ router.get('/:quizId/results', async (req, res) => {
     }
 });
 
+const processingRouter = express.Router();
+
 /**
  * GET /api/quiz/processing/:quizId
  * Check processing status of a quiz
  */
-router.get('/processing/:quizId', async (req, res) => {
+processingRouter.get('/processing/:quizId', async (req, res) => {
     try {
         const { quizId } = req.params;
         
@@ -381,4 +383,4 @@ router.get('/processing/:quizId', async (req, res) => {
     }
 });
 
-export default router;
+export { router as quizRoutes, processingRouter };

@@ -29,6 +29,7 @@ const createRateLimiter = ({ windowMs, max, message, store }) => {
         store,
         standardHeaders: true,
         legacyHeaders: false,
+        trustProxy: config.server.trustProxy,
     });
 };
 
@@ -66,7 +67,15 @@ export function initializeRateLimiters() {
         store,
     });
 
+    limiters.processing = createRateLimiter({
+        windowMs: 1 * 60 * 1000, // 1 minute
+        max: 21, // 100 requests per minute
+        message: 'Too many status requests. Please try again after a minute.',
+        store,
+    });
+
     logger.info(`General Rate Limiter: ${config.rateLimit.general.requests} requests per ${config.rateLimit.general.windowMinutes} min`);
+    logger.info(`Processing Rate Limiter: 21 requests per min`);
 }
 
 /**
@@ -76,16 +85,18 @@ export function initializeRateLimiters() {
  * @param {string} routeType - The type of route ('health', 'general').
  * @returns {import('express').RequestHandler}
  */
-export const getRateLimiter = (routeType) => (req, res, next) => {
+export const getRateLimiter = (routeType) => {
     if (!config.rateLimit.enabled) {
-        return next();
+        return (req, res, next) => next();
     }
 
-    // No rate limiting for health checks on static files
-    if (routeType === 'health') {
-        return next();
+    switch (routeType) {
+        case 'health':
+            return (req, res, next) => next();
+        case 'processing':
+            return limiters.processing;
+        case 'general':
+        default:
+            return limiters.general;
     }
-
-    // Apply general rate limiter for all other requests
-    return limiters.general(req, res, next);
 };

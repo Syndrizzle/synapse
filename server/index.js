@@ -10,7 +10,7 @@ import { applySecurity, configureCORS } from './middleware/security.js';
 import { initializeRateLimiters, getRateLimiter } from './middleware/rateLimit.js';
 import { createError } from './models/schemas.js';
 import openRouterService from './services/openrouter.js';
-import quizRoutes from './routes/quiz.js';
+import { quizRoutes, processingRouter } from './routes/quiz.js';
 
 /**
  * Synapse Server
@@ -75,6 +75,12 @@ async function initializeRedis() {
 function configureMiddleware() {
     logger.info('🔧 Configuring middleware...');
 
+    // Trust proxy setting for rate limiting
+    if (config.server.trustProxy) {
+        app.set('trust proxy', 1); // Adjust the number of proxies as needed
+        logger.info('✅ Trust proxy enabled');
+    }
+
     // HTTP request logging
     const morganFormat = config.server.isProduction ? 'combined' : 'dev';
     app.use(morgan(morganFormat, { stream: logger.stream }));
@@ -107,7 +113,7 @@ function setupRoutes() {
     logger.info('🛣️  Setting up routes...');
 
 // Health check endpoint
-    app.get('/api/v1/health', async (req, res) => {
+    app.get('/api/v1/health', getRateLimiter('health'), async (req, res) => {
         try {
             // Base health payload
             const healthStatus = {
@@ -170,6 +176,8 @@ function setupRoutes() {
 
     // Setup route modules
     app.use('/api/v1/quiz', getRateLimiter('general'), quizRoutes);
+    app.use('/api/v1/quiz/processing', getRateLimiter('processing'), processingRouter);
+
 
     // Catch-all for undefined API routes
     app.use('/api/v1', (req, res, next) => {

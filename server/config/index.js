@@ -49,6 +49,7 @@ const config = {
         isDevelopment: (process.env.NODE_ENV || 'development') === 'development',
         isProduction: process.env.NODE_ENV === 'production',
         isTest: process.env.NODE_ENV === 'test',
+        trustProxy: parseBooleanSafe(process.env.TRUST_PROXY, false),
     },
 
     // =================================================================
