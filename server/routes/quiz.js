@@ -355,7 +355,7 @@ const processingRouter = express.Router();
  * GET /api/quiz/processing/:quizId
  * Check processing status of a quiz
  */
-processingRouter.get('/processing/:quizId', async (req, res) => {
+processingRouter.get('/:quizId', async (req, res) => {
     try {
         const { quizId } = req.params;
         
