@@ -47,31 +47,37 @@ export function initializeRateLimiters() {
 
     logger.info('Initializing rate limiters...');
 
-    let store;
-    if (config.server.isProduction) {
+    const createStore = (prefix) => {
+        if (!config.server.isProduction) {
+            logger.info(`Rate limiting for ${prefix} will use in-memory store (development mode).`);
+            return undefined;
+        }
+
         try {
             const client = redisService.getClient();
-            store = new RedisStore({ sendCommand: (...args) => client.call(...args), prefix: 'rl:general:' });
-            logger.info('Rate limiting will use Redis store.');
+            logger.info(`Rate limiting for ${prefix} will use Redis store.`);
+            return new RedisStore({
+                sendCommand: (...args) => client.call(...args),
+                prefix: `rl:${prefix}:`,
+            });
         } catch (error) {
-            logger.error('Failed to create RedisStore. Falling back to in-memory store.', { error: error.message });
+            logger.error(`Failed to create RedisStore for ${prefix}. Falling back to in-memory store.`, { error: error.message });
+            return undefined;
         }
-    } else {
-        logger.info('Rate limiting will use in-memory store (development mode).');
-    }
+    };
 
     limiters.general = createRateLimiter({
         windowMs: config.rateLimit.general.windowMinutes * 60 * 1000,
         max: config.rateLimit.general.requests,
         message: `Too many requests. Please try again after ${config.rateLimit.general.windowMinutes} minutes.`,
-        store,
+        store: createStore('general'),
     });
 
     limiters.processing = createRateLimiter({
         windowMs: 1 * 60 * 1000, // 1 minute
-        max: 21, // 100 requests per minute
+        max: 100, // 100 requests per minute
         message: 'Too many status requests. Please try again after a minute.',
-        store,
+        store: createStore('processing'),
     });
 
     logger.info(`General Rate Limiter: ${config.rateLimit.general.requests} requests per ${config.rateLimit.general.windowMinutes} min`);
