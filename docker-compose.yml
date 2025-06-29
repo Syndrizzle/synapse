@@ -4,6 +4,7 @@ services:
     ports:
       - "3000:3000"
     environment:
+      - APP_FQDN_3000
       - NODE_ENV=${NODE_ENV:-production}
       - PORT=${PORT:-3000}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
