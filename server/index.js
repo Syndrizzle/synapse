@@ -175,8 +175,8 @@ function setupRoutes() {
     // API routes
 
     // Setup route modules
-    app.use('/api/v1/quiz', getRateLimiter('general'), quizRoutes);
-    app.use('/api/v1/quiz/processing', getRateLimiter('processing'), processingRouter);
+    app.use('/api/v1/quiz', quizRoutes);
+    app.use('/api/v1/quiz/processing', processingRouter);
 
 
     // Catch-all for undefined API routes

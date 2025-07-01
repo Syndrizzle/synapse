@@ -97,25 +97,45 @@ export function initializeRateLimiters() {
 
 /**
  * Middleware to apply rate limiter based on route type.
+ * This function returns a middleware that dynamically applies the correct limiter at request time.
+ * This solves the startup race condition where routes are defined before limiters are initialized.
  * @param {string} routeType - The type of route ('generation', 'processing', 'api', 'health').
  * @returns {import('express').RequestHandler}
  */
 export const getRateLimiter = (routeType) => {
-    if (!config.rateLimit.enabled) {
-        return (req, res, next) => next();
-    }
+    // This wrapper function is the actual middleware
+    return (req, res, next) => {
+        if (!config.rateLimit.enabled) {
+            return next();
+        }
 
-    switch (routeType) {
-        case 'generation':
-            return limiters.generation;
-        case 'processing':
-            return limiters.processing;
-        case 'api':
-            return limiters.api;
-        case 'health':
-            return (req, res, next) => next();
-        default:
-            // Fallback to the most lenient limiter for safety
-            return limiters.api;
-    }
+        let limiter;
+        switch (routeType) {
+            case 'generation':
+                limiter = limiters.generation;
+                break;
+            case 'processing':
+                limiter = limiters.processing;
+                break;
+            case 'api':
+                limiter = limiters.api;
+                break;
+            case 'health':
+                // Health checks have no rate limit
+                return next();
+            default:
+                // Fallback to the most lenient limiter for safety
+                limiter = limiters.api;
+                break;
+        }
+
+        // If the limiter exists (it should after initialization), apply it.
+        // Otherwise, log a warning and continue without limiting.
+        if (limiter) {
+            return limiter(req, res, next);
+        } else {
+            logger.warn(`Rate limiter for route type "${routeType}" not found at request time. Skipping.`);
+            return next();
+        }
+    };
 };
