@@ -101,10 +101,10 @@ const config = {
     // =================================================================
     rateLimit: {
         enabled: parseBooleanSafe(process.env.ENABLE_RATE_LIMITING, true),
-        general: {
-            requests: parseIntSafe(process.env.RATE_LIMIT_REQUESTS, 50, 1, 1000),
-            windowMinutes: parseIntSafe(process.env.RATE_LIMIT_WINDOW_MINUTES, 1, 1, 60),
-        },
+        // How many quizzes can be generated per minute
+        quizzesPerMinute: parseIntSafe(process.env.RATE_LIMIT_QUIZZES_PER_MINUTE, 2, 1, 100),
+        // General API limit for other requests
+        apiRequestsPerMinute: parseIntSafe(process.env.RATE_LIMIT_API_REQUESTS_PER_MINUTE, 50, 10, 1000),
     },
 
     // =================================================================

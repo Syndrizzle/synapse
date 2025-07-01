@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import CountUp from "react-countup";
@@ -130,6 +130,26 @@ export const QuizResults = () => {
     }
   };
 
+  const downloadLink = useMemo(() => {
+    if (!resultsData) return null;
+    const pdf = <QuizResultsPDF resultsData={resultsData} />;
+    return (
+      <PDFDownloadLink
+        document={pdf}
+        fileName={`quiz-results-${resultsData.id}.pdf`}
+      >
+        {({ loading }) => (
+          <Button disabled={loading}>
+            <Download />
+            <p className="text-lg">
+              {loading ? "Generating PDF..." : "Download PDF"}
+            </p>
+          </Button>
+        )}
+      </PDFDownloadLink>
+    );
+  }, [resultsData]);
+
   if (loading || !resultsData) {
     return (
       <Loading/>
@@ -235,19 +255,7 @@ export const QuizResults = () => {
           <p className="lg:text-5xl text-4xl text-neutral-50 font-heading">
             Download this Result as a PDF
           </p>
-          <PDFDownloadLink
-            document={<QuizResultsPDF resultsData={resultsData} />}
-            fileName={`quiz-results-${resultsData.id}.pdf`}
-          >
-            {({ loading }) => (
-              <Button disabled={loading}>
-                <Download />
-                <p className="text-lg">
-                  {loading ? "Generating PDF..." : "Download PDF"}
-                </p>
-              </Button>
-            )}
-          </PDFDownloadLink>
+          {downloadLink}
         </div>
         <div className="w-full flex bg-neutral-800 rounded-lg md:col-span-5 md:row-start-2 md:col-start-5 row-start-4 col-span-9 items-center justify-center p-6 flex-col lg:gap-4 gap-3">
           <div className="lg:text-3xl text-2xl text-neutral-50 font-heading flex flex-row items-center gap-2">

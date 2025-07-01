@@ -6,6 +6,7 @@ import openRouterService from '../services/openrouter.js';
 import redisService from '../services/redis.js';
 import logger from '../utils/logger.js';
 import { createError, createSuccess, REDIS_KEYS } from '../models/schemas.js';
+import { getRateLimiter } from '../middleware/rateLimit.js';
 
 /**
  * Quiz generation routes
@@ -49,7 +50,7 @@ const upload = multer({
  * POST /api/quiz/generate
  * Upload PDFs and generate MCQs
  */
-router.post('/generate', upload.array('pdfs', config.upload.maxFilesCount), async (req, res, next) => {
+router.post('/generate', getRateLimiter('generation'), upload.array('pdfs', config.upload.maxFilesCount), async (req, res, next) => {
     const quizId = uuidv4();
     try {
         logger.info(`[${quizId}] Quiz generation request received.`);
@@ -131,7 +132,7 @@ router.post('/generate', upload.array('pdfs', config.upload.maxFilesCount), asyn
  * GET /api/quiz/:quizId
  * Retrieve a specific quiz
  */
-router.get('/:quizId', async (req, res) => {
+router.get('/:quizId', getRateLimiter('api'), async (req, res) => {
     try {
         const { quizId } = req.params;
 
@@ -186,7 +187,7 @@ router.get('/:quizId', async (req, res) => {
  * POST /api/quiz/:quizId/submit
  * Submit quiz answers and get results
  */
-router.post('/:quizId/submit', async (req, res) => {
+router.post('/:quizId/submit', getRateLimiter('api'), async (req, res) => {
     try {
         const { quizId } = req.params;
         const { answers, timeTaken } = req.body;
@@ -321,7 +322,7 @@ router.post('/:quizId/submit', async (req, res) => {
  * GET /api/quiz/:quizId/results
  * Get quiz results for a session
  */
-router.get('/:quizId/results', async (req, res) => {
+router.get('/:quizId/results', getRateLimiter('api'), async (req, res) => {
     try {
         const { quizId } = req.params;
 
@@ -355,7 +356,7 @@ const processingRouter = express.Router();
  * GET /api/quiz/processing/:quizId
  * Check processing status of a quiz
  */
-processingRouter.get('/:quizId', async (req, res) => {
+processingRouter.get('/:quizId', getRateLimiter('processing'), async (req, res) => {
     try {
         const { quizId } = req.params;
         

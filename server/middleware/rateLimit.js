@@ -66,29 +66,38 @@ export function initializeRateLimiters() {
         }
     };
 
-    limiters.general = createRateLimiter({
-        windowMs: config.rateLimit.general.windowMinutes * 60 * 1000,
-        max: config.rateLimit.general.requests,
-        message: `Too many requests. Please try again after ${config.rateLimit.general.windowMinutes} minutes.`,
-        store: createStore('general'),
+    // Strictest limiter: for quiz generation
+    limiters.generation = createRateLimiter({
+        windowMs: 1 * 60 * 1000, // 1 minute
+        max: config.rateLimit.quizzesPerMinute,
+        message: `You can only generate ${config.rateLimit.quizzesPerMinute} quiz(zes) per minute.`,
+        store: createStore('generation'),
     });
 
+    // Limiter for polling the processing status (21 requests per minute)
     limiters.processing = createRateLimiter({
         windowMs: 1 * 60 * 1000, // 1 minute
-        max: 100, // 100 requests per minute
+        max: 21, // 20 requests for polling (every 3s) + 1 for buffer
         message: 'Too many status requests. Please try again after a minute.',
         store: createStore('processing'),
     });
 
-    logger.info(`General Rate Limiter: ${config.rateLimit.general.requests} requests per ${config.rateLimit.general.windowMinutes} min`);
+    // General purpose limiter for other API calls
+    limiters.api = createRateLimiter({
+        windowMs: 1 * 60 * 1000, // 1 minute
+        max: config.rateLimit.apiRequestsPerMinute,
+        message: 'Too many requests. Please try again after a minute.',
+        store: createStore('api'),
+    });
+
+    logger.info(`Generation Rate Limiter: ${config.rateLimit.quizzesPerMinute} requests per min`);
     logger.info(`Processing Rate Limiter: 21 requests per min`);
+    logger.info(`API Rate Limiter: ${config.rateLimit.apiRequestsPerMinute} requests per min`);
 }
 
 /**
  * Middleware to apply rate limiter based on route type.
- * Health endpoints for static files have no rate limiting.
- * All other endpoints use the general rate limiter (3 requests per minute).
- * @param {string} routeType - The type of route ('health', 'general').
+ * @param {string} routeType - The type of route ('generation', 'processing', 'api', 'health').
  * @returns {import('express').RequestHandler}
  */
 export const getRateLimiter = (routeType) => {
@@ -97,12 +106,16 @@ export const getRateLimiter = (routeType) => {
     }
 
     switch (routeType) {
-        case 'health':
-            return (req, res, next) => next();
+        case 'generation':
+            return limiters.generation;
         case 'processing':
             return limiters.processing;
-        case 'general':
+        case 'api':
+            return limiters.api;
+        case 'health':
+            return (req, res, next) => next();
         default:
-            return limiters.general;
+            // Fallback to the most lenient limiter for safety
+            return limiters.api;
     }
 };
