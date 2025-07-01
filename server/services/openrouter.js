@@ -6,7 +6,6 @@ import { openRouterMCQSchema } from '../models/schemas.js';
  * OpenRouter AI service for MCQ generation
  * Handles all interactions with OpenRouter API using native PDF processing
  */
-
 class OpenRouterService {
     constructor() {
         this.apiKey = config.openrouter.apiKey;
@@ -145,7 +144,22 @@ class OpenRouterService {
     createPrompt(options) {
         const { includeExplanations, language, minQuestions, maxQuestions } = options;
 
-        return `You are an expert educator tasked with creating high-quality multiple choice questions (MCQs) from the provided PDF document.
+        // Get current date and time in Indian Standard Time (IST)
+        const now = new Date();
+        const dateTimeOptions = {
+            timeZone: 'Asia/Kolkata',
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            timeZoneName: 'short'
+        };
+        const formatter = new Intl.DateTimeFormat('en-IN', dateTimeOptions);
+        const currentDate = formatter.format(now);
+
+        return `**Critical context: The current date is ${currentDate}. All your knowledge and responses must be based on this current time.** You are an expert educator tasked with creating high-quality multiple choice questions (MCQs) from the provided PDF document.
 
 **INSTRUCTIONS:**
 1. Analyze the PDF document thoroughly to understand its content and scope
