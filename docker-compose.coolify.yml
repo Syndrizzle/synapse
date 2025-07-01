@@ -8,7 +8,7 @@ services:
       - NODE_ENV=${NODE_ENV:-production}
       - PORT=${PORT:-3000}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY:-}
       - OPENROUTER_MODEL=${OPENROUTER_MODEL:-google/gemini-2.5-flash}
       - REDIS_URL=${REDIS_URL:-keydb://keydb:6379}
       - MIN_QUIZ_LENGTH=${MIN_QUIZ_LENGTH:-5}
