@@ -69,6 +69,14 @@ const config = {
     },
 
     // =================================================================
+    // TAVILY API CONFIGURATION
+    // =================================================================
+    tavily: {
+        apiKey: process.env.TAVILY_API_KEY || '',
+        enabled: !!process.env.TAVILY_API_KEY,
+    },
+
+    // =================================================================
     // REDIS CONFIGURATION
     // =================================================================
     redis: {
@@ -147,6 +155,11 @@ export const validateConfig = () => {
     // Check critical required values
     if (!config.openrouter.apiKey || config.openrouter.apiKey === 'your_openrouter_api_key_here') {
         errors.push('OPENROUTER_API_KEY is required and must be set to a valid API key');
+    }
+
+    if (!config.tavily.apiKey) {
+        console.warn('⚠️  TAVILY_API_KEY is not set. Web search functionality will be disabled.');
+        config.tavily.enabled = false;
     }
 
     if (!config.redis.url || config.redis.url === 'redis://localhost:6379') {

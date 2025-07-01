@@ -11,11 +11,12 @@ interface FileState {
   maxFiles: number;
   maxFileSize: number;
   allowedFileTypes: string[];
+  searchEnabled: boolean;
   capacityLoaded: boolean;
   files: FileData[];
   quizId: string | null;
   uploadSpeed: number; // in KB/s
-  setUploadConfig: (cfg: { maxFiles: number; maxFileSize: number; allowedFileTypes: string[] }) => void;
+  setUploadConfig: (cfg: { maxFiles: number; maxFileSize: number; allowedFileTypes: string[], searchEnabled: boolean }) => void;
   processingStatus: string | null;
   addFiles: (files: FileData[]) => void;
   removeFile: (id: string) => void;
@@ -30,6 +31,7 @@ export const useFileStore = create<FileState>((set) => ({
   maxFiles: 5,
   maxFileSize: 10485760,
   allowedFileTypes: ["application/pdf"],
+  searchEnabled: false,
   capacityLoaded: false,
   files: [],
   quizId: null,

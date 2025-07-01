@@ -21,12 +21,14 @@ api.interceptors.response.use(
 
 export const generateQuiz = async (
   files: { file: File }[],
+  useSearch: boolean,
   onUploadProgress: (progress: number) => void
 ) => {
   const formData = new FormData();
   files.forEach((fileData) => {
     formData.append("pdfs", fileData.file);
   });
+  formData.append("useSearch", String(useSearch));
 
   const response = await api.post("/quiz/generate", formData, {
     headers: {
@@ -73,8 +75,8 @@ export const checkApiHealth = async () => {
   const response = await api.get("/health");
   // If the backend sends capacity, update the store so the whole app reacts
   if (response.data && response.data.capacity) {
-    const { maxFiles, maxFileSize, allowedFileTypes } = response.data.capacity;
-    useFileStore.getState().setUploadConfig({ maxFiles, maxFileSize, allowedFileTypes });
+    const { maxFiles, maxFileSize, allowedFileTypes, searchEnabled } = response.data.capacity;
+    useFileStore.getState().setUploadConfig({ maxFiles, maxFileSize, allowedFileTypes, searchEnabled });
   }
   return response.data;
 };

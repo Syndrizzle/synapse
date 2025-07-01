@@ -67,6 +67,7 @@ router.post('/generate', getRateLimiter('generation'), upload.array('pdfs', conf
             includeExplanations: req.body.includeExplanations !== 'false',
             topics: req.body.topics ? req.body.topics.split(',').map(t => t.trim()) : [],
             language: req.body.language || 'en',
+            useSearch: req.body.useSearch === 'true',
         };
 
         // Store initial processing status

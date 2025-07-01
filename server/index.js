@@ -128,6 +128,7 @@ function setupRoutes() {
                 maxFileSize: config.upload.maxFileSize,
                 maxFiles: config.upload.maxFilesCount,
                 allowedFileTypes: config.upload.allowedFileTypes,
+                searchEnabled: config.tavily.enabled,
             };
 
             // Only expose additional diagnostic information when NOT in production

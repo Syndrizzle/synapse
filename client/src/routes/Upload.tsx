@@ -1,4 +1,4 @@
-import { ArrowLeft, Upload } from "lucide-react";
+import { ArrowLeft, Upload, Search } from "lucide-react";
 import { Button } from "@/components/Button";
 import { UploadArea } from "@/components/UploadArea";
 import { useFileStore } from "@/stores/fileStore";
@@ -6,11 +6,13 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { generateQuiz } from "@/services/api";
+import { useState } from "react";
 
 const UploadPage = () => {
-  const { files, clearFiles, setUploadSpeed } = useFileStore();
+  const { files, clearFiles, setUploadSpeed, searchEnabled } = useFileStore();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [useSearch, setUseSearch] = useState(true);
 
   const handleGoBack = () => {
     clearFiles();
@@ -26,7 +28,7 @@ const UploadPage = () => {
     navigate("/uploading");
 
     try {
-      await generateQuiz(files, () => {
+      await generateQuiz(files, useSearch, () => {
         // The new API service reports progress as a percentage, but the old
         // implementation reported it as KB/s. Since the new implementation
         // does not track time, we will pass a dummy value of 0 for now. In
@@ -62,14 +64,25 @@ const UploadPage = () => {
 
   const actionButtons = (
     <>
-      <Button
-        disabled={files.length === 0}
-        holdToConfirm
-        onHoldComplete={handleConfirmUpload}
-      >
-        <Upload strokeWidth={2.5} />
-        Hold to Upload
-      </Button>
+      <div className="flex w-full gap-2">
+        {searchEnabled && (
+          <Button
+            variant={useSearch ? "default" : "outline"}
+            onClick={() => setUseSearch(!useSearch)}
+            className="w-1/6 md:w-1/4"
+          >
+            <Search size={20} strokeWidth={2.5} />
+          </Button>
+        )}        <Button
+          disabled={files.length === 0}
+          holdToConfirm
+          onHoldComplete={handleConfirmUpload}
+          className="w-full"
+        >
+          <Upload strokeWidth={2.5} />
+          Hold to Upload
+        </Button>
+      </div>
       <Button variant={"destructive"} holdToConfirm onHoldComplete={handleGoBack}>
         <ArrowLeft strokeWidth={2.5} />
         Hold to Go Back

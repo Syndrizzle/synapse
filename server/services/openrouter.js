@@ -10,11 +10,34 @@ import { openRouterMCQSchema } from '../models/schemas.js';
 class OpenRouterService {
     constructor() {
         this.apiKey = config.openrouter.apiKey;
+        this.tavilyApiKey = config.tavily.apiKey;
         this.baseUrl = config.openrouter.baseUrl;
         this.model = config.openrouter.model;
         this.timeout = config.openrouter.timeout;
         this.maxRetries = config.openrouter.maxRetries;
         this.pdfEngine = config.openrouter.pdfProcessingEngine;
+
+        this.searchTool = {
+            type: "function",
+            function: {
+                name: "tavily_search",
+                description: "Get information on recent events from the web to create more relevant and up-to-date quiz questions. Use this for topics that are contemporary or evolving.",
+                parameters: {
+                    type: "object",
+                    properties: {
+                        query: {
+                            type: "string",
+                            description: "The search query to use. For example: 'Latest advancements in AI'"
+                        },
+                    },
+                    required: ["query"]
+                }
+            }
+        };
+
+        this.toolMapping = {
+            "tavily_search": this._tavilySearch.bind(this)
+        };
     }
 
     /**
@@ -29,19 +52,14 @@ class OpenRouterService {
             language = 'en',
             minQuestions = config.quiz.minQuestions,
             maxQuestions = config.quiz.maxQuestions,
+            useSearch = false,
         } = options;
 
         try {
-            // Handle single or multiple PDFs
             const pdfBuffers = Array.isArray(pdfBuffer) ? pdfBuffer : [pdfBuffer];
-            logger.info(`Generating MCQs from ${pdfBuffers.length} PDF(s) using ${this.model}...`);
-            logger.info(`Using PDF engine: ${this.pdfEngine}`);
+            logger.info(`Generating MCQs from ${pdfBuffers.length} PDF(s) using ${this.model}. Search: ${useSearch ? 'Enabled' : 'Disabled'}`);
 
-            // Convert all PDF buffers to base64 data URLs
-            const pdfDataUrls = pdfBuffers.map(buffer => {
-                const base64PDF = buffer.toString('base64');
-                return `data:application/pdf;base64,${base64PDF}`;
-            });
+            const pdfDataUrls = pdfBuffers.map(buffer => `data:application/pdf;base64,${buffer.toString('base64')}`);
 
             const prompt = this.createPrompt({
                 includeExplanations,
@@ -51,9 +69,58 @@ class OpenRouterService {
                 pdfCount: pdfBuffers.length,
             });
 
-            const response = await this.makeAPIRequestWithPDF(prompt, pdfDataUrls);
+            const userContent = [{ type: 'text', text: "Please generate a quiz based on the following document(s)." }];
+            pdfDataUrls.forEach((pdfUrl, index) => {
+                userContent.push({ type: 'file', file: { filename: `document${index + 1}.pdf`, file_data: pdfUrl } });
+            });
 
-            if (!response.quiz) {
+            let messages = [
+                { role: 'system', content: prompt },
+                { role: 'user', content: userContent }
+            ];
+
+            const requestBody = {
+                model: this.model,
+                messages: messages,
+                response_format: openRouterMCQSchema,
+                temperature: config.openrouter.temperature,
+                max_tokens: config.openrouter.maxTokens,
+                top_p: 0.9,
+                plugins: [{ id: 'file-parser', pdf: { engine: this.pdfEngine } }],
+                tools: useSearch ? [this.searchTool] : undefined,
+                tool_choice: useSearch ? "auto" : "none",
+            };
+
+            const initialResponse = await this._makeChatAPIRequest(requestBody);
+            
+            let responseMessage = initialResponse.choices[0].message;
+            messages.push(responseMessage);
+
+            if (useSearch && responseMessage.tool_calls) {
+                logger.info('Model requested a tool call for search.');
+                for (const toolCall of responseMessage.tool_calls) {
+                    const functionName = toolCall.function.name;
+                    if (this.toolMapping[functionName]) {
+                        const functionArgs = JSON.parse(toolCall.function.arguments);
+                        const functionResponse = await this.toolMapping[functionName](functionArgs);
+                        messages.push({
+                            tool_call_id: toolCall.id,
+                            role: "tool",
+                            name: functionName,
+                            content: functionResponse,
+                        });
+                    }
+                }
+
+                logger.info('Sending tool response back to the model to generate final quiz.');
+                const finalRequestBody = { ...requestBody, messages: messages, tools: undefined, tool_choice: undefined };
+                const finalResponse = await this._makeChatAPIRequest(finalRequestBody);
+                responseMessage = finalResponse.choices[0].message;
+            }
+            
+            const parsedContent = this._parseAndValidateResponse(responseMessage.content);
+
+            if (!parsedContent.quiz) {
                 throw new Error('Invalid response format from OpenRouter');
             }
 
@@ -61,7 +128,7 @@ class OpenRouterService {
             const totalSize = pdfBuffers.reduce((sum, buffer) => sum + buffer.length, 0);
 
             // Validate and enhance the quiz
-            const quiz = this.validateAndEnhanceQuiz(response.quiz, totalSize, pdfBuffers.length);
+            const quiz = this.validateAndEnhanceQuiz(parsedContent.quiz, totalSize, pdfBuffers.length);
 
             logger.info(`Successfully generated ${quiz.questions.length} MCQs from ${pdfBuffers.length} PDF(s)`);
             return quiz;
@@ -93,6 +160,7 @@ class OpenRouterService {
 10. Language: ${language}
 11. Ensure questions test understanding, not just memorization
 12. Focus on the main topics and key concepts from the document
+13. **Crucially, ignore non-content sections like tables of contents, course outlines, and reference lists when creating questions.**
 
 **QUALITY REQUIREMENTS:**
 - Questions should be clear, unambiguous, and grammatically correct
@@ -108,85 +176,65 @@ Generate a quiz that follows the structured output format with the required fiel
     }
 
     /**
-     * Make API request to OpenRouter with PDF(s) and plugin configuration
+     * Private method to perform a search using the Tavily API.
      */
-    async makeAPIRequestWithPDF(prompt, pdfDataUrls, retryCount = 0) {
+    async _tavilySearch({ query }) {
+        logger.info(`Performing Tavily search for: "${query}"`);
         try {
-            // Handle single or multiple PDFs
-            const pdfUrls = Array.isArray(pdfDataUrls) ? pdfDataUrls : [pdfDataUrls];
-
-            // Standard message structure for PDFs
-            const content = [];
-
-            // Add text prompt first (recommended by OpenRouter)
-            content.push({
-                type: 'text',
-                text: prompt,
+            const response = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.tavilyApiKey}` },
+                body: JSON.stringify({ api_key: this.tavilyApiKey, query, search_depth: "advanced", max_results: 5, include_answer: true })
             });
+            if (!response.ok) {
+                const errorBody = await response.text();
+                logger.error(`Tavily API error: ${response.status} ${response.statusText}`, errorBody);
+                throw new Error(`Tavily search failed: ${response.status}`);
+            }
+            const data = await response.json();
+            logger.info("Tavily search complete.");
+            return JSON.stringify(data.results);
+        } catch (error) {
+            logger.error("Error during Tavily search:", error);
+            return JSON.stringify({ error: "Search failed", details: error.message });
+        }
+    }
 
-            // Add each PDF as a separate content item
-            pdfUrls.forEach((pdfUrl, index) => {
-                content.push({
-                    type: 'file',
-                    file: {
-                        filename: `document${index + 1}.pdf`,
-                        file_data: pdfUrl,
-                    },
-                });
-            });
-
-            const messages = [{
-                role: 'user',
-                content: content,
-            }];
-
-            const requestBody = {
-                model: this.model,
-                messages: messages,
-                response_format: openRouterMCQSchema,
-                temperature: config.openrouter.temperature,
-                max_tokens: config.openrouter.maxTokens,
-                top_p: 0.9,
-                // Configure PDF processing plugin
-                plugins: [
-                    {
-                        id: 'file-parser',
-                        pdf: {
-                            engine: this.pdfEngine,
-                        },
-                    },
-                ],
-            };
-
-            if (config.development.debugMode) {
-                logger.debug('OpenRouter PDF request:', {
-                    model: this.model,
-                    promptLength: prompt.length,
-                    pdfCount: pdfUrls.length,
-                    pdfEngine: this.pdfEngine,
-                    temperature: requestBody.temperature,
+    /**
+     * Makes a generic chat API request to OpenRouter.
+     */
+    async _makeChatAPIRequest(requestBody, retryCount = 0) {
+        if (config.development.debugMode) {
+            // Clone the request body to avoid logging sensitive file data
+            const loggableBody = JSON.parse(JSON.stringify(requestBody));
+            if (loggableBody.messages) {
+                loggableBody.messages.forEach(msg => {
+                    if (Array.isArray(msg.content)) {
+                        msg.content = msg.content.map(part => {
+                            if (part.type === 'file' && part.file?.file_data) {
+                                return { ...part, file: { ...part.file, file_data: '[REDACTED_FOR_LOGS]' } };
+                            }
+                            return part;
+                        });
+                    }
                 });
             }
+            logger.debug('OpenRouter API Request:', loggableBody);
+        }
 
+        try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-
             const response = await fetch(`${this.baseUrl}/chat/completions`, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.apiKey}`,
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Authorization': `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody),
                 signal: controller.signal,
             });
-
             clearTimeout(timeoutId);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-
-                // Log error response in development mode
                 if (config.development.debugMode) {
                     logger.error('OpenRouter API error response:', {
                         status: response.status,
@@ -195,98 +243,58 @@ Generate a quiz that follows the structured output format with the required fiel
                         errorData: errorData
                     });
                 }
-
                 throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
             }
 
-            const data = await response.json();
-
+            const responseData = await response.json();
             if (config.development.debugMode) {
-                logger.debug('Full OpenRouter API response:', data);
+                logger.debug('Full OpenRouter API response:', responseData);
             }
-
-            if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-                logger.error('Invalid response structure from OpenRouter API. Full response:', JSON.stringify(data, null, 2));
-                throw new Error('Invalid response structure from OpenRouter API');
-            }
-
-            // Parse the JSON response
-            const responseContent = data.choices[0].message.content;
-            let parsedContent;
-
-            if (config.development.debugMode) {
-                logger.debug(`Raw OpenRouter response: ${responseContent}`);
-            }
-
-            try {
-                parsedContent = JSON.parse(responseContent);
-            } catch (parseError) {
-                logger.error('Failed to parse OpenRouter response as JSON');
-                logger.error(`Raw content (first 1000 chars): ${responseContent.substring(0, 1000)}`);
-
-                // Try to extract JSON from markdown code blocks
-                const jsonMatch = responseContent.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
-                if (jsonMatch) {
-                    try {
-                        parsedContent = JSON.parse(jsonMatch[1]);
-                        logger.info('Extracted JSON from markdown block');
-                    } catch (extractError) {
-                        throw new Error('Could not parse JSON from response content');
-                    }
-                } else {
-                    // Try to find JSON object in the response
-                    const jsonObjectMatch = responseContent.match(/\{[\s\S]*\}/);
-                    if (jsonObjectMatch) {
-                        try {
-                            parsedContent = JSON.parse(jsonObjectMatch[0]);
-                            logger.info('Extracted JSON object from response');
-                        } catch (extractError) {
-                            throw new Error('Found JSON-like content but could not parse it');
-                        }
-                    } else {
-                        throw new Error('No valid JSON found in OpenRouter response');
-                    }
-                }
-            }
-
-            // Validate the response structure
-            if (!parsedContent || typeof parsedContent !== 'object') {
-                throw new Error('OpenRouter response is not a valid object');
-            }
-
-            // Check if it has the expected quiz structure
-            if (!parsedContent.quiz && !parsedContent.questions) {
-                // If the response doesn't have the expected structure, try to wrap it
-                if (Array.isArray(parsedContent)) {
-                    parsedContent = {
-                        quiz: {
-                            title: 'Generated Quiz',
-                            questions: parsedContent
-                        }
-                    };
-                } else if (parsedContent.questions) {
-                    parsedContent = {
-                        quiz: parsedContent
-                    };
-                }
-            }
-
-            return parsedContent;
-
+            return responseData;
         } catch (error) {
-            if (error.name === 'AbortError') {
-                throw new Error(`OpenRouter API request timed out after ${this.timeout}ms`);
-            }
-
-            // Retry logic
+            if (error.name === 'AbortError') throw new Error(`OpenRouter API request timed out after ${this.timeout}ms`);
             if (retryCount < this.maxRetries && this.shouldRetry(error)) {
                 logger.warn(`OpenRouter request failed, retrying (${retryCount + 1}/${this.maxRetries}):`, error.message);
-                await this.delay(Math.pow(2, retryCount) * 1000); // Exponential backoff
-                return this.makeAPIRequestWithPDF(prompt, pdfDataUrls, retryCount + 1);
+                await this.delay(Math.pow(2, retryCount) * 1000);
+                return this._makeChatAPIRequest(requestBody, retryCount + 1);
             }
-
             throw error;
         }
+    }
+
+    /**
+     * Parses and validates the JSON response from the model.
+     */
+    _parseAndValidateResponse(responseContent) {
+        let parsedContent;
+        try {
+            parsedContent = JSON.parse(responseContent);
+        } catch (parseError) {
+            logger.error('Failed to parse OpenRouter response as JSON', { content: responseContent.substring(0, 500) });
+            const jsonMatch = responseContent.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+            if (jsonMatch) {
+                try {
+                    parsedContent = JSON.parse(jsonMatch[1]);
+                    logger.info('Extracted JSON from markdown block');
+                } catch (extractError) {
+                    throw new Error('Could not parse JSON from response content');
+                }
+            } else {
+                throw new Error('No valid JSON found in OpenRouter response');
+            }
+        }
+
+        if (!parsedContent || typeof parsedContent !== 'object') {
+            throw new Error('OpenRouter response is not a valid object');
+        }
+
+        if (!parsedContent.quiz && parsedContent.questions) {
+             parsedContent = { quiz: parsedContent };
+        } else if (!parsedContent.quiz && Array.isArray(parsedContent)) {
+            parsedContent = { quiz: { title: 'Generated Quiz', questions: parsedContent }};
+        }
+        
+        return parsedContent;
     }
 
 
@@ -411,6 +419,7 @@ Generate a quiz that follows the structured output format with the required fiel
             maxRetries: this.maxRetries,
             pdfProcessing: 'native-openrouter',
             pdfEngine: this.pdfEngine,
+            tavilySearch: !!this.tavilyApiKey,
         };
     }
 }
