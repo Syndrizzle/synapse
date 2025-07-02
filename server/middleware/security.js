@@ -52,7 +52,6 @@ export const configureCORS = () => {
 
             const allowedOrigins = [
                 ...config.security.corsOrigins,
-                ...config.security.authorizedDomains,
             ];
 
             // Check if origin is in allowed list

@@ -152,7 +152,7 @@ export const QuizResults = () => {
 
   if (loading || !resultsData) {
     return (
-      <Loading/>
+      <Loading />
     );
   }
 
@@ -180,13 +180,15 @@ export const QuizResults = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      <header className="flex items-center w-full justify-center mt-4 md:mt-0">
-        <img
-          src="/logo.svg"
-          alt="Synapse Logo"
-          className="md:h-10 h-8 w-auto object-cover m-2"
-        />
-      </header>
+      <a href="/">
+        <header className="flex items-center w-full justify-center mt-4 md:mt-0">
+          <img
+            src="/logo.svg"
+            alt="Synapse Logo"
+            className="md:h-10 h-8 w-auto object-cover m-2"
+          />
+        </header>
+      </a>
       <div className="font-heading md:text-5xl text-4xl text-green-500 md:my-4 my-2 flex items-center md:gap-4 gap-3">
         <LottieAnimation animationData={ResultLottie} className="md:w-12 w-8" />
         Results
@@ -323,55 +325,52 @@ export const QuizResults = () => {
               <div className="gap-2 flex flex-row font-body items-center">
                 <p className="text-neutral-300">Your Answer:</p>
                 <div
-                  className={`px-3 py-1 rounded-lg ${
-                    currentQuestion.userAnswer === null
+                  className={`px-3 py-1 rounded-lg ${currentQuestion.userAnswer === null
                       ? "bg-neutral-400/10 text-neutral-400"
                       : currentQuestion.isCorrect
-                      ? "bg-green-400/10 text-green-400"
-                      : "bg-red-400/10 text-red-400"
-                  }`}
+                        ? "bg-green-400/10 text-green-400"
+                        : "bg-red-400/10 text-red-400"
+                    }`}
                 >
                   {currentQuestion.userAnswer === null
                     ? "Not Attempted"
                     : currentQuestion.isCorrect
-                    ? "Correct"
-                    : "Incorrect"}
+                      ? "Correct"
+                      : "Incorrect"}
                 </div>
               </div>
               {(currentQuestion.userAnswer === null ||
                 !currentQuestion.isCorrect) && (
-                <div className="flex flex-col gap-2 rounded-lg p-4 bg-green-400/10">
-                  <div className="flex flex-col gap-2 justify-center">
-                    <p className="font-body lg:text-lg flex items-center gap-2 text-green-400">
-                      {" "}
-                      <BadgeCheck className="w-5 h-5" />
-                      Correct Answer:
-                    </p>
-                    <p className="font-body text-neutral-50 lg:text-xl">
-                      {currentQuestion.options[currentQuestion.correctAnswer]}
-                    </p>
+                  <div className="flex flex-col gap-2 rounded-lg p-4 bg-green-400/10">
+                    <div className="flex flex-col gap-2 justify-center">
+                      <p className="font-body lg:text-lg flex items-center gap-2 text-green-400">
+                        {" "}
+                        <BadgeCheck className="w-5 h-5" />
+                        Correct Answer:
+                      </p>
+                      <p className="font-body text-neutral-50 lg:text-xl">
+                        {currentQuestion.options[currentQuestion.correctAnswer]}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
             <div
-              className={`flex flex-col gap-2 rounded-lg p-4 ${
-                currentQuestion.isCorrect
+              className={`flex flex-col gap-2 rounded-lg p-4 ${currentQuestion.isCorrect
                   ? "bg-green-400/10"
                   : currentQuestion.userAnswer === null
-                  ? "bg-neutral-400/10"
-                  : "bg-blue-400/10"
-              }`}
+                    ? "bg-neutral-400/10"
+                    : "bg-blue-400/10"
+                }`}
             >
               <div className="flex flex-col gap-2 justify-center">
                 <p
-                  className={`font-body lg:text-lg flex items-center gap-2 ${
-                    currentQuestion.isCorrect
+                  className={`font-body lg:text-lg flex items-center gap-2 ${currentQuestion.isCorrect
                       ? "text-green-400"
                       : currentQuestion.userAnswer === null
-                      ? "text-neutral-400"
-                      : "text-blue-400"
-                  }`}
+                        ? "text-neutral-400"
+                        : "text-blue-400"
+                    }`}
                 >
                   <BadgeCheck className="w-5 h-5" />
                   Explanation

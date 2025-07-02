@@ -58,7 +58,7 @@ const config = {
     openrouter: {
         apiKey: process.env.OPENROUTER_API_KEY || '',
         baseUrl: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1',
-        model: process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash',
+        model: process.env.OPENROUTER_MODEL || 'openai/gpt-4.1-mini',
         pdfProcessingEngine: process.env.PDF_PROCESSING_ENGINE || 'native',
         
         // Advanced settings
@@ -120,7 +120,6 @@ const config = {
     // =================================================================
     security: {
         corsOrigins: parseListSafe(process.env.CORS_ORIGINS, ['http://localhost:3000', 'http://localhost:5173']),
-        authorizedDomains: parseListSafe(process.env.AUTHORIZED_DOMAINS, []),
         maxRequestSize: process.env.MAX_REQUEST_SIZE || '10mb',
     },
 
@@ -186,8 +185,6 @@ export const logConfig = () => {
         console.log(`   Quiz: ${config.quiz.minQuestions}-${config.quiz.maxQuestions} questions (dynamic based on content)`);
         console.log(`   Max File Size: ${(config.upload.maxFileSize / 1024 / 1024).toFixed(1)}MB`);
         console.log(`   CORS Origins: ${config.security.corsOrigins.join(', ')}`);
-        console.log(`   Allowed Domains: ${config.security.authorizedDomains.join(', ')}`);
-
     }
 };
 

@@ -1,171 +1,143 @@
-import Joi from 'joi';
+import { z } from 'zod/v4';
 
 /**
- * Data schemas and validation for Synapse Server
- * Uses Joi for runtime validation and JSON Schema for OpenRouter structured outputs
+ * Data schemas and validation for Synapse
+ * Uses Zod v4 for runtime validation with built-in JSON Schema generation
  */
 
 // =================================================================
-// JOI VALIDATION SCHEMAS (for runtime validation)
+// ZOD VALIDATION SCHEMAS
 // =================================================================
 
 /**
- * Quiz Question Schema for Joi validation
+ * Quiz Question Schema
  */
-export const quizQuestionSchema = Joi.object({
-    id: Joi.string().required().description('Unique question identifier'),
-    question: Joi.string().min(10).max(1000).required().description('The question text'),
-    options: Joi.array().items(
-        Joi.string().min(1).max(500)
-    ).length(4).required().description('Array of exactly 4 answer options'),
-    correctAnswer: Joi.number().integer().min(0).max(3).required().description('Index of correct answer (0-3)'),
-    explanation: Joi.string().max(1000).optional().description('Optional explanation for the answer'),
-    topic: Joi.string().max(200).optional().description('Topic or subject area'),
+export const quizQuestionSchema = z.object({
+    id: z.string().min(1).describe('Unique question identifier'),
+    question: z.string().min(10).max(1000).describe('The question text'),
+    options: z.array(z.string().min(1).max(500)).length(4).describe('Array of exactly 4 answer options'),
+    correctAnswer: z.number().int().min(0).max(3).describe('Index of correct answer (0-3)'),
+    explanation: z.string().max(1000).optional().describe('Optional explanation for the answer'),
+    topic: z.string().max(200).optional().describe('Topic or subject area'),
 });
 
 /**
- * Quiz Schema for Joi validation
+ * Quiz Metadata Schema
  */
-export const quizSchema = Joi.object({
-    id: Joi.string().required().description('Unique quiz identifier'),
-    title: Joi.string().min(5).max(200).required().description('Quiz title'),
-    description: Joi.string().max(1000).optional().description('Quiz description'),
-    questions: Joi.array().items(quizQuestionSchema).min(1).max(100).required(),
-    createdAt: Joi.date().optional(),
-    updatedAt: Joi.date().optional(),
-    metadata: Joi.object({
-        sourceFiles: Joi.array().items(Joi.string()).optional(),
-        totalQuestions: Joi.number().integer().min(1).optional(),
-        estimatedDuration: Joi.number().integer().min(1).optional(), // minutes
-    }).optional(),
+export const quizMetadataSchema = z.object({
+    sourceFiles: z.array(z.string()).optional().describe('Source file names'),
+    totalQuestions: z.number().int().min(1).describe('Total number of questions'),
+    estimatedDuration: z.number().int().min(1).describe('Estimated duration in minutes'),
+    topics: z.array(z.string()).optional().describe('Main topics covered'),
+    pdfSize: z.number().int().optional().describe('Total size of PDF files in bytes'),
+    pdfCount: z.number().int().optional().describe('Number of PDF files processed'),
+    generatedAt: z.string().datetime().optional().describe('Generation timestamp'),
+    model: z.string().optional().describe('AI model used for generation'),
+    pdfProcessingEngine: z.string().optional().describe('PDF processing engine used'),
 });
 
 /**
- * File Upload Schema for Joi validation
+ * Quiz Schema
  */
-export const fileUploadSchema = Joi.object({
-    originalname: Joi.string().required(),
-    mimetype: Joi.string().valid('application/pdf').required(),
-    size: Joi.number().integer().max(52428800).required(), // 50MB max
-    buffer: Joi.binary().required(),
+export const quizSchema = z.object({
+    id: z.string().min(1).describe('Unique quiz identifier'),
+    title: z.string().min(5).max(200).describe('Quiz title'),
+    description: z.string().max(1000).optional().describe('Quiz description'),
+    questions: z.array(quizQuestionSchema).min(1).max(100).describe('Array of quiz questions'),
+    createdAt: z.date().optional().describe('Creation timestamp'),
+    updatedAt: z.date().optional().describe('Last update timestamp'),
+    metadata: quizMetadataSchema.optional().describe('Quiz metadata'),
+});
+
+/**
+ * File Upload Schema (for actual file validation)
+ */
+export const fileUploadSchema = z.object({
+    originalname: z.string().min(1).describe('Original filename'),
+    mimetype: z.literal('application/pdf').describe('MIME type (must be PDF)'),
+    size: z.number().int().max(52428800).describe('File size in bytes (max 50MB)'),
+    buffer: z.instanceof(Buffer).describe('File buffer data'),
+});
+
+/**
+ * File Upload Schema for JSON Schema generation (simplified)
+ */
+export const fileUploadSchemaForJSON = z.object({
+    originalname: z.string().min(1).describe('Original filename'),
+    mimetype: z.literal('application/pdf').describe('MIME type (must be PDF)'),
+    size: z.number().int().max(52428800).describe('File size in bytes (max 50MB)'),
+    buffer: z.string().describe('File buffer data (base64 encoded)'),
+});
+
+/**
+ * Quiz Generation Options Schema
+ */
+export const quizGenerationOptionsSchema = z.object({
+    questionCount: z.number().int().min(5).max(50).default(15).describe('Number of questions to generate'),
+    includeExplanations: z.boolean().default(true).describe('Include explanations for answers'),
+    topics: z.array(z.string().max(100)).max(10).optional().describe('Specific topics to focus on'),
+    language: z.enum(['en', 'es', 'fr', 'de', 'it', 'pt']).default('en').describe('Language for questions'),
+    useSearch: z.boolean().default(false).describe('Enable web search for current information'),
 });
 
 /**
  * Quiz Generation Request Schema
  */
-export const quizGenerationRequestSchema = Joi.object({
-    files: Joi.array().items(fileUploadSchema).min(1).max(5).required(),
-    options: Joi.object({
-        questionCount: Joi.number().integer().min(5).max(50).default(15),
-        includeExplanations: Joi.boolean().default(true),
-        topics: Joi.array().items(Joi.string().max(100)).max(10).optional(),
-        language: Joi.string().valid('en', 'es', 'fr', 'de', 'it', 'pt').default('en'),
-    }).optional().default({}),
+export const quizGenerationRequestSchema = z.object({
+    files: z.array(fileUploadSchema).min(1).max(5).describe('Array of PDF files to process'),
+    options: quizGenerationOptionsSchema.optional().default({}).describe('Generation options'),
 });
 
 // =================================================================
-// JSON SCHEMA FOR OPENROUTER STRUCTURED OUTPUT
+// OPENROUTER JSON SCHEMA (Generated from Zod)
 // =================================================================
 
 /**
- * OpenRouter Structured Output Schema for MCQ Generation
- * This ensures the AI returns properly formatted MCQ data
+ * Generate OpenRouter-compatible JSON Schema from Zod schema
  */
-export const openRouterMCQSchema = {
-    type: 'json_schema',
-    json_schema: {
-        name: 'mcq_quiz_generation',
-        strict: true,
-        schema: {
-            type: 'object',
-            properties: {
-                quiz: {
-                    type: 'object',
-                    properties: {
-                        title: {
-                            type: 'string',
-                            description: 'A descriptive title for the quiz based on the PDF content'
-                        },
-                        description: {
-                            type: 'string',
-                            description: 'A brief description of what the quiz covers'
-                        },
-                        questions: {
-                            type: 'array',
-                            description: 'Array of multiple choice questions',
-                            items: {
-                                type: 'object',
-                                properties: {
-                                    id: {
-                                        type: 'string',
-                                        description: 'Unique identifier for the question (e.g., q1, q2, etc.)'
-                                    },
-                                    question: {
-                                        type: 'string',
-                                        description: 'The question text, clear and concise'
-                                    },
-                                    options: {
-                                        type: 'array',
-                                        description: 'Exactly 4 answer options',
-                                        items: {
-                                            type: 'string'
-                                        },
-                                        minItems: 4,
-                                        maxItems: 4
-                                    },
-                                    correctAnswer: {
-                                        type: 'integer',
-                                        description: 'Index of the correct answer (0, 1, 2, or 3)',
-                                        minimum: 0,
-                                        maximum: 3
-                                    },
-                                    explanation: {
-                                        type: 'string',
-                                        description: 'Brief explanation of why this answer is correct'
-                                    },
-                                    topic: {
-                                        type: 'string',
-                                        description: 'Topic or subject area this question covers'
-                                    }
-                                },
-                                required: ['id', 'question', 'options', 'correctAnswer', 'explanation', 'topic'],
-                                additionalProperties: false
-                            }
-                        },
-                        metadata: {
-                            type: 'object',
-                            properties: {
-                                totalQuestions: {
-                                    type: 'integer',
-                                    description: 'Total number of questions in the quiz',
-                                    minimum: 1
-                                },
-                                estimatedDuration: {
-                                    type: 'integer',
-                                    description: 'Estimated time to complete in minutes',
-                                    minimum: 1
-                                },
-                                topics: {
-                                    type: 'array',
-                                    description: 'Main topics covered in the quiz',
-                                    items: {
-                                        type: 'string'
-                                    }
-                                }
-                            },
-                            required: ['totalQuestions', 'estimatedDuration', 'topics'],
-                            additionalProperties: false
-                        }
-                    },
-                    required: ['title', 'description', 'questions', 'metadata'],
-                    additionalProperties: false
-                }
-            },
-            required: ['quiz'],
-            additionalProperties: false
+function createOpenRouterSchema(zodSchema, name, description) {
+    return {
+        type: 'json_schema',
+        json_schema: {
+            name: name,
+            strict: true,
+            schema: {
+                ...z.toJSONSchema(zodSchema),
+                title: name,
+                description: description,
+            }
         }
-    }
-};
+    };
+}
+
+/**
+ * OpenRouter MCQ Schema - Generated from Zod
+ */
+const openRouterQuizSchema = z.object({
+    quiz: z.object({
+        title: z.string().describe('A descriptive title for the quiz based on the PDF content'),
+        description: z.string().describe('A brief description of what the quiz covers'),
+        questions: z.array(z.object({
+            id: z.string().describe('Unique identifier for the question (e.g., q1, q2, etc.)'),
+            question: z.string().describe('The question text, clear and concise'),
+            options: z.array(z.string()).length(4).describe('Exactly 4 answer options'),
+            correctAnswer: z.number().int().min(0).max(3).describe('Index of the correct answer (0, 1, 2, or 3)'),
+            explanation: z.string().describe('Brief explanation of why this answer is correct'),
+            topic: z.string().describe('Topic or subject area this question covers'),
+        })).describe('Array of multiple choice questions'),
+        metadata: z.object({
+            totalQuestions: z.number().int().min(1).describe('Total number of questions in the quiz'),
+            estimatedDuration: z.number().int().min(1).describe('Estimated time to complete in minutes'),
+            topics: z.array(z.string()).describe('Main topics covered in the quiz'),
+        }).describe('Quiz metadata'),
+    }).describe('Complete quiz object'),
+});
+
+export const openRouterMCQSchema = createOpenRouterSchema(
+    openRouterQuizSchema,
+    'mcq_quiz_generation',
+    'Generate a multiple choice quiz from PDF content'
+);
 
 // =================================================================
 // REDIS KEY PATTERNS
@@ -217,29 +189,40 @@ export const SUPPORTED_LANGUAGES = {
     DE: 'de',
     IT: 'it',
     PT: 'pt',
+    HI: 'hi',
 };
 
 export const FILE_TYPES = {
     PDF: 'application/pdf',
 };
 
-
 // =================================================================
 // HELPER FUNCTIONS
 // =================================================================
 
 /**
- * Validates data against a Joi schema
+ * Validates data against a Zod schema
  * @param {Object} data - Data to validate
- * @param {Object} schema - Joi schema
- * @returns {Object} - { error, value }
+ * @param {z.ZodSchema} schema - Zod schema
+ * @returns {Object} - { success, data, error }
  */
 export const validate = (data, schema) => {
-    return schema.validate(data, { 
-        abortEarly: false,
-        stripUnknown: true,
-        convert: true,
-    });
+    const result = schema.safeParse(data);
+    return {
+        success: result.success,
+        data: result.success ? result.data : null,
+        error: result.success ? null : result.error,
+    };
+};
+
+/**
+ * Validates data against a Zod schema (throws on error)
+ * @param {Object} data - Data to validate
+ * @param {z.ZodSchema} schema - Zod schema
+ * @returns {Object} - Validated and transformed data
+ */
+export const validateStrict = (data, schema) => {
+    return schema.parse(data);
 };
 
 /**
@@ -271,5 +254,61 @@ export const createSuccess = (data, message = 'Success') => {
         message,
         data,
         timestamp: new Date().toISOString(),
+    };
+};
+
+/**
+ * Formats Zod errors for user-friendly display
+ * @param {z.ZodError} zodError - Zod validation error
+ * @returns {Object} - Formatted error object
+ */
+export const formatZodError = (zodError) => {
+    const formattedErrors = zodError.errors.map(error => ({
+        field: error.path.join('.'),
+        message: error.message,
+        code: error.code,
+        received: error.received,
+        expected: error.expected,
+    }));
+
+    return {
+        message: 'Validation failed',
+        errors: formattedErrors,
+        details: {
+            errorCount: zodError.errors.length,
+            firstError: formattedErrors[0],
+        },
+    };
+};
+
+/**
+ * Converts Zod schema to JSON Schema for documentation
+ * @param {z.ZodSchema} schema - Zod schema
+ * @returns {Object} - JSON Schema object
+ */
+export const getJSONSchema = (schema) => {
+    try {
+        return z.toJSONSchema(schema);
+    } catch (error) {
+        console.warn('Failed to generate JSON Schema:', error.message);
+        return { error: 'Schema generation failed', message: error.message };
+    }
+};
+
+// =================================================================
+// SCHEMA EXPORTS FOR EXTERNAL USE
+// =================================================================
+
+/**
+ * Get JSON Schemas for API documentation (lazy loading to avoid startup crashes)
+ * @returns {Object} - Object containing JSON schemas
+ */
+export const getJSONSchemas = () => {
+    return {
+        quizQuestion: getJSONSchema(quizQuestionSchema),
+        quiz: getJSONSchema(quizSchema),
+        fileUpload: getJSONSchema(fileUploadSchema),
+        quizGenerationRequest: getJSONSchema(quizGenerationRequestSchema),
+        quizGenerationOptions: getJSONSchema(quizGenerationOptionsSchema),
     };
 };

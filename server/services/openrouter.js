@@ -1,6 +1,7 @@
 import config from '../config/index.js';
 import logger from '../utils/logger.js';
 import { openRouterMCQSchema } from '../models/schemas.js';
+import { tavily } from '@tavily/core';
 
 /**
  * OpenRouter AI service for MCQ generation
@@ -15,6 +16,20 @@ class OpenRouterService {
         this.timeout = config.openrouter.timeout;
         this.maxRetries = config.openrouter.maxRetries;
         this.pdfEngine = config.openrouter.pdfProcessingEngine;
+
+        // Initialize Tavily client - only if API key is available and search is enabled
+        this.tavilyClient = null;
+        if (this.tavilyApiKey && config.tavily.enabled) {
+            try {
+                this.tavilyClient = tavily({ apiKey: this.tavilyApiKey });
+                logger.info('✅ Tavily search client initialized successfully');
+            } catch (error) {
+                logger.error('❌ Failed to initialize Tavily client:', error.message);
+                this.tavilyClient = null;
+            }
+        } else if (!this.tavilyApiKey) {
+            logger.info('ℹ️  Tavily search disabled - no API key configured');
+        }
 
         this.searchTool = {
             type: "function",
@@ -66,6 +81,7 @@ class OpenRouterService {
                 minQuestions,
                 maxQuestions,
                 pdfCount: pdfBuffers.length,
+                useSearch,
             });
 
             const userContent = [{ type: 'text', text: "Please generate a quiz based on the following document(s)." }];
@@ -91,7 +107,7 @@ class OpenRouterService {
             };
 
             const initialResponse = await this._makeChatAPIRequest(requestBody);
-            
+
             let responseMessage = initialResponse.choices[0].message;
             messages.push(responseMessage);
 
@@ -116,7 +132,7 @@ class OpenRouterService {
                 const finalResponse = await this._makeChatAPIRequest(finalRequestBody);
                 responseMessage = finalResponse.choices[0].message;
             }
-            
+
             const parsedContent = this._parseAndValidateResponse(responseMessage.content);
 
             if (!parsedContent.quiz) {
@@ -142,7 +158,7 @@ class OpenRouterService {
      * Create optimized prompt for MCQ generation from PDF
      */
     createPrompt(options) {
-        const { includeExplanations, language, minQuestions, maxQuestions } = options;
+        const { includeExplanations, language, minQuestions, maxQuestions, useSearch = false } = options;
 
         // Get current date and time in Indian Standard Time (IST)
         const now = new Date();
@@ -159,58 +175,129 @@ class OpenRouterService {
         const formatter = new Intl.DateTimeFormat('en-IN', dateTimeOptions);
         const currentDate = formatter.format(now);
 
+        const searchInstructions = useSearch ? `
+
+**SEARCH INTEGRATION GUIDELINES:**
+When search functionality is enabled, you have access to current web information. Use this strategically:
+
+**WHEN TO USE SEARCH:**
+- When document content covers rapidly evolving fields (AI, technology, current events, recent scientific discoveries)
+- If the document discusses concepts that may have recent developments or updates since ${currentDate.split(',')[1]}
+- For topics that benefit from contemporary examples or current context
+- When foundational content could be enhanced with recent real-world applications
+
+**WHEN NOT TO USE SEARCH:**
+- For well-established, timeless concepts (basic mathematics, historical facts, fundamental principles)
+- When the document already contains comprehensive, current information
+- For definitions or explanations that are unlikely to have changed
+- For content that is primarily theoretical or conceptual
+
+**HOW TO INTEGRATE SEARCH RESULTS:**
+- Blend search findings seamlessly with document content
+- Use search results to create more relevant, up-to-date questions
+- Ensure search-enhanced questions still test understanding of core concepts from the document
+- Create questions that combine document knowledge with current developments
+- Use search data to provide contemporary examples in questions or explanations
+
+**SEARCH STRATEGY:**
+- Search for specific, focused topics rather than broad subjects
+- Look for recent developments, current applications, or updated statistics
+- Search for real-world examples that relate to document concepts
+- Avoid searching for basic definitions already covered in the document` : '';
+
         return `**Critical context: The current date is ${currentDate}. All your knowledge and responses must be based on this current time.** You are an expert educator tasked with creating high-quality multiple choice questions (MCQs) from the provided PDF document.
 
+**STRICT CONTENT FILTERING - WHAT TO IGNORE:**
+You MUST completely ignore and skip over the following types of content when generating questions:
+- Course outlines, syllabi, and curriculum structures
+- Grading criteria, exam weightings, and assessment percentages
+- Assignment instructions and project requirements
+- Administrative information (course codes, prerequisites, schedules)
+- Tables of contents, reference lists, and bibliographies
+- Course policies, attendance requirements, and academic integrity statements
+- Contact information, office hours, and instructor details
+- Learning objectives and outcome statements
+- Course calendar and timeline information
+- Evaluation rubrics and marking schemes
+- Any meta-information ABOUT the course rather than the actual subject matter
+
+**FOCUS EXCLUSIVELY ON:**
+- Core educational content and subject matter
+- Concepts, theories, and principles being taught
+- Factual information, definitions, and explanations
+- Examples, case studies, and applications
+- Historical context and developments in the field
+- Technical processes, methods, and procedures
+- Research findings and empirical data
+- Problem-solving approaches and methodologies${searchInstructions}
+
+**CONTENT ANALYSIS AND TEMPORAL ASSESSMENT:**
+1. First, identify the subject matter and determine if it's in a rapidly evolving field
+2. Assess whether the document content might benefit from current context or recent developments
+3. Look for topics that have seen significant changes or updates since the document was created
+4. Consider whether real-world, current examples would enhance understanding of the concepts
+
 **INSTRUCTIONS:**
-1. Analyze the PDF document thoroughly to understand its content and scope
-2. Based on the document content, generate between ${minQuestions} and ${maxQuestions} multiple choice questions
-3. The number of questions should be proportional to the amount of meaningful content in the PDF
-4. For shorter documents or limited content, generate fewer questions (closer to ${minQuestions})
-5. For comprehensive documents with rich content, generate more questions (up to ${maxQuestions})
-6. Each question must have exactly 4 options
-7. Only one option should be correct
-8. Make incorrect options plausible but clearly wrong
-9. ${includeExplanations ? 'Include detailed explanations for why the correct answer is right' : 'Focus on clear, concise questions'}
-10. Language: ${language}
-11. Ensure questions test understanding, not just memorization
-12. Focus on the main topics and key concepts from the document
-13. **Crucially, ignore non-content sections like tables of contents, course outlines, and reference lists when creating questions.**
+1. Analyze the PDF document thoroughly to identify ONLY substantive educational content
+2. ${useSearch ? 'Evaluate which topics might benefit from current information and use search strategically' : 'Focus entirely on the document content'}
+3. Based on the meaningful content found, generate between ${minQuestions} and ${maxQuestions} multiple choice questions
+4. The number of questions should be proportional to the amount of actual educational content (not administrative content)
+5. For documents with mostly administrative content, generate fewer questions
+6. For documents rich in educational substance, generate more questions (up to ${maxQuestions})
+7. Each question must have exactly 4 options
+8. Only one option should be correct
+9. Make incorrect options plausible but clearly wrong
+10. ${includeExplanations ? 'Include detailed explanations for why the correct answer is right' : 'Focus on clear, concise questions'}
+11. Language: ${language}
+12. Ensure questions test understanding of the subject matter, not memorization of course structure
+13. Focus exclusively on the educational content and key concepts being taught
+14. **If a document contains primarily administrative content with minimal educational substance, generate fewer questions or indicate insufficient content**
+15. ${useSearch ? 'When using search results, ensure they enhance rather than replace document-based questions' : 'Base all questions strictly on document content'}
 
 **QUALITY REQUIREMENTS:**
 - Questions should be clear, unambiguous, and grammatically correct
-- Avoid questions that can be answered without reading the document
+- Avoid questions that can be answered without understanding the subject matter
 - Test different cognitive levels (knowledge, comprehension, application, analysis)
 - Ensure options are roughly equal in length and complexity
 - Absolutely avoid "all of the above" or "none of the above" options
-- Extract meaningful content from all sections of the document
-- Don't create questions if there isn't enough substantial content
-- Identify clear topics for each question based on the content
+- Extract meaningful educational content only
+- Don't create questions about course structure, grading, or administrative details
+- Each question should test understanding of actual subject matter concepts
+- ${useSearch ? 'Balance document-based questions with search-enhanced questions for comprehensive coverage' : 'Maintain strict focus on document content'}
 
 Generate a quiz that follows the structured output format with the required fields: title, description, questions array, and metadata.`;
     }
 
     /**
-     * Private method to perform a search using the Tavily API.
+     * Private method to perform a search using the Tavily JS SDK.
      */
     async _tavilySearch({ query }) {
         logger.info(`Performing Tavily search for: "${query}"`);
+
+        if (!this.tavilyClient) {
+            logger.error("Tavily client not initialized - API key missing");
+            return JSON.stringify({ error: "Search unavailable", details: "Tavily API key not configured" });
+        }
+
         try {
-            const response = await fetch('https://api.tavily.com/search', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.tavilyApiKey}` },
-                body: JSON.stringify({ api_key: this.tavilyApiKey, query, search_depth: "advanced", max_results: 5, include_answer: true })
+            // Use the Tavily JS SDK for cleaner, more reliable search
+            const response = await this.tavilyClient.search(query, {
+                search_depth: "basic",
+                max_results: 5,
+                include_answer: true,
+                include_raw_content: false
             });
-            if (!response.ok) {
-                const errorBody = await response.text();
-                logger.error(`Tavily API error: ${response.status} ${response.statusText}`, errorBody);
-                throw new Error(`Tavily search failed: ${response.status}`);
-            }
-            const data = await response.json();
+
             logger.info("Tavily search complete.");
-            return JSON.stringify(data.results);
+
+            // Return the results in the same format as before for compatibility
+            return JSON.stringify(response.results || []);
         } catch (error) {
             logger.error("Error during Tavily search:", error);
-            return JSON.stringify({ error: "Search failed", details: error.message });
+            return JSON.stringify({
+                error: "Search failed",
+                details: error.message || "Unknown search error"
+            });
         }
     }
 
@@ -303,11 +390,11 @@ Generate a quiz that follows the structured output format with the required fiel
         }
 
         if (!parsedContent.quiz && parsedContent.questions) {
-             parsedContent = { quiz: parsedContent };
+            parsedContent = { quiz: parsedContent };
         } else if (!parsedContent.quiz && Array.isArray(parsedContent)) {
-            parsedContent = { quiz: { title: 'Generated Quiz', questions: parsedContent }};
+            parsedContent = { quiz: { title: 'Generated Quiz', questions: parsedContent } };
         }
-        
+
         return parsedContent;
     }
 

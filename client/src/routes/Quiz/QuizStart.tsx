@@ -42,7 +42,7 @@ export const QuizStart = () => {
 
   if (loading) {
     return (
-        <Loading/>
+      <Loading />
     );
   }
 
@@ -57,13 +57,15 @@ export const QuizStart = () => {
 
   return (
     <div className="bg-neutral-900 min-h-screen lg:max-w-6xl mx-auto flex flex-col items-center justify-start md:p-8 gap-4 p-4">
-      <header className="flex items-center w-full justify-center mt-4 md:mt-0">
-        <img
-          src="/logo.svg"
-          alt="Synapse Logo"
-          className="md:h-10 h-8 w-auto object-cover m-2"
-        />
-      </header>
+      <a href="/">
+        <header className="flex items-center w-full justify-center mt-4 md:mt-0">
+          <img
+            src="/logo.svg"
+            alt="Synapse Logo"
+            className="md:h-10 h-8 w-auto object-cover m-2"
+          />
+        </header>
+      </a>
       <div className="flex md:flex-row flex-col gap-4 text-clip">
         <div className="w-full bg-neutral-800 md:px-8 px-6 py-4 rounded-lg flex flex-col justify-center gap-3">
           <div className="font-heading md:text-5xl text-4xl text-green-500 md:my-4 my-2 flex items-center md:gap-4 gap-3">

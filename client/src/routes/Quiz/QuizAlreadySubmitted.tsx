@@ -23,18 +23,18 @@ export const QuizAlreadySubmitted = () => {
 
         const fetchResults = async () => {
             try {
-        const response = await getQuizResults(quizId);
-        if (response.success) {
-          // Map the server response to our expected interface
-          const mappedData = {
-            ...response.data,
-            id: response.data.id || response.data.quizId || quizId,
-            questionResults: response.data.questionResults?.map((result: QuestionResult & { questionId?: string }, index: number) => ({
-              ...result,
-              id: result.id || result.questionId || `question-${index}`
-            })) || []
-          };
-          setResultsData(mappedData);
+                const response = await getQuizResults(quizId);
+                if (response.success) {
+                    // Map the server response to our expected interface
+                    const mappedData = {
+                        ...response.data,
+                        id: response.data.id || response.data.quizId || quizId,
+                        questionResults: response.data.questionResults?.map((result: QuestionResult & { questionId?: string }, index: number) => ({
+                            ...result,
+                            id: result.id || result.questionId || `question-${index}`
+                        })) || []
+                    };
+                    setResultsData(mappedData);
                 } else {
                     toast.error("Failed to load results.");
                     navigate("/");
@@ -58,13 +58,15 @@ export const QuizAlreadySubmitted = () => {
 
     return (
         <div className="bg-neutral-900 min-h-screen flex flex-col items-center justify-start p-6 gap-4">
-            <header className="flex items-center z-50 w-full justify-center mt-4 mb-8">
-                <img
-                    src="/logo.svg"
-                    alt="Synapse Logo"
-                    className="md:h-10 h-8 w-auto object-cover"
-                />
-            </header>
+            <a href="/">
+                <header className="flex items-center z-50 w-full justify-center mt-4 mb-8">
+                    <img
+                        src="/logo.svg"
+                        alt="Synapse Logo"
+                        className="md:h-10 h-8 w-auto object-cover"
+                    />
+                </header>
+            </a>
             <CircleQuestionMark
                 className="text-neutral-50 md:w-24 w-16 md:h-24 h-16" strokeWidth={1}
             />

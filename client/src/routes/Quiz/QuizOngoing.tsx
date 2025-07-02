@@ -111,7 +111,7 @@ export const QuizOngoingPage = () => {
 
   if (loading || !quizData) {
     return (
-      <Loading/>
+      <Loading />
     );
   }
 
@@ -125,11 +125,13 @@ export const QuizOngoingPage = () => {
 
   const headerContent = (
     <div className="flex flex-col gap-4">
-      <img
-        src="/logo.svg"
-        alt="Synapse Logo"
-        className="lg:w-2/3 lg:h-12 md:w-full w-1/2"
-      />
+      <a href="/">
+        <img
+          src="/logo.svg"
+          alt="Synapse Logo"
+          className="lg:w-2/3 lg:h-12 md:w-full w-1/2"
+        />
+      </a>
       <div className="flex flex-col gap-2">
         <p className="font-heading lg:text-4xl text-3xl text-green-500 my-2 flex items-center gap-2">
           {quizData.title}
@@ -156,21 +158,19 @@ export const QuizOngoingPage = () => {
       <div className="flex gap-2 flex-row">
         <Button
           onClick={handlePrevQuestion}
-          className={`${
-            currentQuestionIndex === 0
+          className={`${currentQuestionIndex === 0
               ? "opacity-50 pointer-events-none"
               : ""
-          }`}
+            }`}
         >
           <ArrowLeft />
         </Button>
         <Button
           onClick={handleNextQuestion}
-          className={`${
-            currentQuestionIndex === quizData.questions.length - 1
+          className={`${currentQuestionIndex === quizData.questions.length - 1
               ? "opacity-50 pointer-events-none cursor-not-allowed"
               : ""
-          }`}
+            }`}
         >
           <ArrowRight />
         </Button>
@@ -217,7 +217,7 @@ export const QuizOngoingPage = () => {
 
       <div className="flex flex-col lg:w-1/3 w-2/5 justify-between">
         <div className="lg:p-4 p-4">{headerContent}</div>
-        <div className="flex flex-col gap-4 px-2">{actionButtons}</div>
+        <div className="flex flex-col gap-4 px-0">{actionButtons}</div>
       </div>
     </div>
   );

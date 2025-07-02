@@ -46,11 +46,13 @@ const UploadPage = () => {
 
   const headerContent = (
     <div className="flex flex-col gap-4">
-      <img
-        src="/logo.svg"
-        alt=" Synapse Logo"
-        className="lg:w-2/3 lg:h-12 md:w-full w-1/2"
-      />
+      <a href="/">
+        <img
+          src="/logo.svg"
+          alt=" Synapse Logo"
+          className="lg:w-2/3 lg:h-12 md:w-full w-1/2"
+        />
+      </a>
       <div className="flex flex-col gap-2">
         <p className="font-heading lg:text-5xl text-3xl text-neutral-50 my-2">
           Review Your Files
@@ -69,22 +71,23 @@ const UploadPage = () => {
           <Button
             variant={useSearch ? "default" : "outline"}
             onClick={() => setUseSearch(!useSearch)}
-            className="w-1/6 md:w-1/4"
+            className="w-1/6 md:w-1/4 justify-center"
           >
-            <Search size={20} strokeWidth={2.5} />
+            <Search strokeWidth={3.5} className="md:w-4 md:h-4 lg:w-5 lg:h-5 w-5 lg-5" />
           </Button>
-        )}        <Button
+        )}
+        <Button
           disabled={files.length === 0}
           holdToConfirm
           onHoldComplete={handleConfirmUpload}
-          className="w-full"
+          className="w-full md:text-base lg:text-lg "
         >
-          <Upload strokeWidth={2.5} />
+          <Upload strokeWidth={2.5} className="md:w-4 md:h-4 lg:w-6 lg:h-6" />
           Hold to Upload
         </Button>
       </div>
-      <Button variant={"destructive"} holdToConfirm onHoldComplete={handleGoBack}>
-        <ArrowLeft strokeWidth={2.5} />
+      <Button variant={"destructive"} holdToConfirm onHoldComplete={handleGoBack} className="md:text-base lg:text-lg">
+        <ArrowLeft strokeWidth={2.5} className="md:w-4 md:h-4 lg:w-6 lg:h-6" />
         Hold to Go Back
       </Button>
     </>

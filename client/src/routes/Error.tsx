@@ -4,13 +4,15 @@ import ErrorLottie from "@/animations/error.json";
 export const Error = () => {
   return (
     <div className="bg-neutral-900 min-h-screen flex flex-col items-center justify-center p-6 gap-4">
-      <header className="fixed top-0 left-0 right-0  flex items-center z-50 w-full justify-center mt-10">
-        <img
-          src="/logo.svg"
-          alt="Synapse Logo"
-          className="md:h-10 h-8 w-auto object-cover"
-        />
-      </header>
+      <a href="/">
+        <header className="fixed top-0 left-0 right-0  flex items-center z-50 w-full justify-center mt-10">
+          <img
+            src="/logo.svg"
+            alt="Synapse Logo"
+            className="md:h-10 h-8 w-auto object-cover"
+          />
+        </header>
+      </a>
       <LottieAnimation
         animationData={ErrorLottie}
         className="invert md:w-32 w-28 h-32"
