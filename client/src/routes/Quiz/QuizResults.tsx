@@ -38,6 +38,11 @@ export const QuizResults = () => {
       try {
         const response = await getQuizResults(quizId);
         if (response.success) {
+          if (!response.data.found) {
+            toast.error("Quiz results not found or have expired.");
+            navigate("/");
+            return;
+          }
           const mappedData = {
             ...response.data,
             id: response.data.id || response.data.quizId || quizId,

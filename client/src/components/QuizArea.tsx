@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { type QuizAreaProps } from "@/types/quiz";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
