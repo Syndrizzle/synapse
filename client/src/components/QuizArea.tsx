@@ -1,17 +1,36 @@
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { type QuizAreaProps } from "@/types/quiz";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
-export const QuizArea = ({ question, questionIndex, selectedAnswer, onSelectAnswer }: QuizAreaProps) => {
+export const QuizArea = ({ question, questionIndex, selectedAnswer, onSelectAnswer, textureUrl }: QuizAreaProps) => {
+  const isMobile = useIsMobile();
+
   return (
-    <div className="md:bg-neutral-950 md:border-2 md:border-neutral-500 w-full h-full gap-6 md:p-10 md:shadow-2xl md:shadow-neutral-950/60 flex flex-col justify-center items-center md:bg-[url(/texture-two.png)]">
+    <motion.div
+      className={`md:bg-neutral-950 md:border-2 md:border-neutral-500 w-full h-full gap-6 md:p-10 md:shadow-2xl md:shadow-neutral-950/60 flex flex-col justify-center items-center relative`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <AnimatePresence mode="wait">
+        {!isMobile && textureUrl && (
+          <motion.div
+            key={`${question.id}-bg`}
+            className="absolute inset-0 w-full h-full"
+            style={{ backgroundImage: `url(${textureUrl})` }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          />
+        )}
         <motion.div
           key={question.id}
+          className="relative w-full h-full flex flex-col justify-center items-center gap-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full h-full flex flex-col justify-center items-center gap-6"
+          transition={{ duration: 0.3 }}
         >
           <div className="flex flex-col w-full max-w-3xl gap-4">
             <p className="font-heading text-4xl text-neutral-50">Question {questionIndex + 1}.</p>
@@ -40,6 +59,6 @@ export const QuizArea = ({ question, questionIndex, selectedAnswer, onSelectAnsw
           </div>
         </motion.div>
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 };

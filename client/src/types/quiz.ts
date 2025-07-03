@@ -97,6 +97,7 @@ export interface QuizAreaProps {
   questionIndex: number;
   selectedAnswer: number | null;
   onSelectAnswer: (answerIndex: number) => void;
+  textureUrl: string;
 }
 
 /**

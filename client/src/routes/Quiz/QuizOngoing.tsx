@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { ArrowLeft, ArrowRight, Clock } from "lucide-react";
+import { useTextureStore } from "@/stores/textureStore";
 import { QuizArea } from "@/components/QuizArea";
 import { QuizNav } from "@/components/QuizNav";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -21,6 +22,7 @@ export const QuizOngoingPage = () => {
   const [visited, setVisited] = useState<boolean[]>([]);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [loading, setLoading] = useState(true);
+  const { currentTexture, setRandomTexture } = useTextureStore();
 
   useEffect(() => {
     if (!quizId) {
@@ -68,6 +70,10 @@ export const QuizOngoingPage = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    setRandomTexture();
+  }, [currentQuestionIndex, setRandomTexture]);
 
   const handleGoToQuestion = useCallback((index: number) => {
     setCurrentQuestionIndex(index);
@@ -193,11 +199,11 @@ export const QuizOngoingPage = () => {
           {headerContent}
           <div className="pb-28">
             <QuizArea
-              key={currentQuestionIndex} // Ensures animation triggers
               question={quizData.questions[currentQuestionIndex]}
               questionIndex={currentQuestionIndex}
               selectedAnswer={answers[currentQuestionIndex]}
               onSelectAnswer={handleSelectAnswer}
+              textureUrl={currentTexture}
             />
           </div>
         </div>
@@ -211,11 +217,11 @@ export const QuizOngoingPage = () => {
     <div className="bg-neutral-900 md:h-screen min-h-screen flex">
       <div className="pl-6 py-6 w-full">
       <QuizArea
-        key={currentQuestionIndex} // Ensures animation triggers
         question={quizData.questions[currentQuestionIndex]}
         questionIndex={currentQuestionIndex}
         selectedAnswer={answers[currentQuestionIndex]}
         onSelectAnswer={handleSelectAnswer}
+        textureUrl={currentTexture}
       />
       </div>
       <div className="flex flex-col lg:w-1/3 w-2/5 justify-between pb-6">
