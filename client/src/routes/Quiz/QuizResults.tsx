@@ -305,17 +305,16 @@ export const QuizResults = () => {
                   isUserAnswer && !currentQuestion.isCorrect;
 
                 let className =
-                  "font-body border-2 flex flex-row items-center justify-center px-6 py-3 md:text-2xl text-lg relative transition-all duration-300 gap-4 ";
-
+                  "font-body flex flex-row items-center justify-center px-6 py-3 md:text-2xl text-lg relative  gap-4 ";
                 if (isCorrectAnswer) {
                   className +=
-                    "bg-green-400 text-neutral-900 border-green-600 inset-shadow-sm inset-shadow-green-900";
+                    "bg-green-400 text-neutral-950 shadow-button-green hover:shadow-button-green-hover rounded-xl transition-all duration-300 hover:scale-98 bg-[url(/texture.png)] cursor-pointer lg:rounded-2xl";
                 } else if (isIncorrectUserAnswer) {
                   className +=
-                    "bg-red-400 text-neutral-900 border-red-600 inset-shadow-sm inset-shadow-red-900";
+                    "bg-[#fa8b8b] text-neutral-950 shadow-button-destructive active:shadow-button-destructive-hover rounded-xl transition-all duration-300 hover:scale-98 bg-[url(/texture.png)] cursor-pointer lg:rounded-2xl";
                 } else {
                   className +=
-                    "bg-neutral-900 text-neutral-50 border-neutral-500";
+                    "bg-neutral-800 text-neutral-50 shadow-button-outline active:shadow-button-outline-hover rounded-xl transition-all duration-300 hover:scale-98 bg-[url(/texture.png)] cursor-pointer lg:rounded-2xl";
                 }
 
                 return (

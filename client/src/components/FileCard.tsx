@@ -18,9 +18,16 @@ export const FileCard = ({ fileData }: FileCardProps) => {
   };
 
   return (
-    <div className="relative p-6 md:p-4 bg-neutral-900 flex flex-col items-center justify-center gap-10 rounded-lg shadow-md">
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.5 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.5 }}
+      transition={{ duration: 0.3 }}
+      className="relative p-6 md:p-4 bg-neutral-900 shadow-button-outline flex flex-col items-center justify-center gap-10 rounded-xl"
+    >
       <div
-        className="absolute top-2 right-2 bg-neutral-900 p-2 rounded text-neutral-50 transition-colors duration-300 cursor-pointer hover:bg-yellow-400 hover:text-neutral-900"
+        className="absolute top-2 right-2 bg-neutral-900 p-2 rounded-lg text-neutral-50 transition-colors duration-200 cursor-pointer hover:bg-red-400 hover:text-neutral-900 active:bg-red-400 active:text-neutral-900"
         title="Delete File"
         onClick={handleDelete}
       >
@@ -29,7 +36,7 @@ export const FileCard = ({ fileData }: FileCardProps) => {
       <motion.img
         initial={{ opacity: 0, scale: 1.5 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
         src={thumbnail}
         alt="PDF Thumbnail"
         className="h-48 w-3/5 -rotate-12 border-8 border-neutral-200 object-contain pointer-events-none bg-neutral-800 mt-6"
@@ -42,6 +49,6 @@ export const FileCard = ({ fileData }: FileCardProps) => {
           {formatBytes(file.size)}
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 };

@@ -13,7 +13,7 @@ const buttonVariants = cva(
         "default":
           "bg-yellow-400 shadow-button-default active:shadow-button-default-hover text-neutral-950",
         "destructive":
-          "bg-[#fa8b8b] text-neutral-900 text-neutral-950 shadow-button-destructive active:shadow-button-destructive-hover",
+          "bg-[#fa8b8b] text-neutral-950 shadow-button-destructive active:shadow-button-destructive-hover",
         "outline-yellow":
           "bg-neutral-800 text-yellow-600 shadow-button-outline-yellow active:shadow-button-outline-yellow-hover",
         "outline":

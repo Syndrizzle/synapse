@@ -54,7 +54,7 @@ const UploadPage = () => {
         />
       </a>
       <div className="flex flex-col gap-2">
-        <p className="font-heading lg:text-5xl text-3xl text-neutral-50 my-2">
+        <p className="font-heading text-5xl text-neutral-50 my-2">
           Review Your Files
         </p>
         <p className="text-neutral-300 text-lg font-body">
@@ -66,7 +66,7 @@ const UploadPage = () => {
 
   const actionButtons = (
     <>
-      <div className="flex w-full gap-2">
+      <div className="flex w-full gap-2 md:px-6">
         {searchEnabled && (
           <Button
             variant={useSearch ? "default" : "outline"}
@@ -86,10 +86,14 @@ const UploadPage = () => {
           Hold to Upload
         </Button>
       </div>
+      <div className="w-full md:px-6 flex">
+
       <Button variant={"destructive"} holdToConfirm onHoldComplete={handleGoBack} className="md:text-base lg:text-lg">
         <ArrowLeft strokeWidth={1.5} className="md:w-4 md:h-4 lg:w-5 lg:h-5" />
         Hold to Go Back
       </Button>
+      </div>
+
     </>
   );
 
@@ -110,11 +114,15 @@ const UploadPage = () => {
   }
 
   return (
-    <div className="bg-neutral-900 h-screen lg:p-6 p-4 flex gap-6">
+    <div className="bg-neutral-900 md:h-screen min-h-screen flex">
+      <div className="pl-6 py-6 w-full">
+
       <UploadArea />
-      <div className="flex flex-col lg:w-1/3 w-2/5 justify-between">
-        <div className="lg:p-4 p-4">{headerContent}</div>
-        <div className="w-full flex flex-col gap-2 px-2">{actionButtons}</div>
+      </div>
+
+      <div className="flex flex-col lg:w-1/3 w-2/5 justify-between pb-6">
+        <div className="p-8">{headerContent}</div>
+        <div className="w-full flex flex-col gap-2">{actionButtons}</div>
       </div>
     </div>
   );

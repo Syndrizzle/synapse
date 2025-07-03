@@ -86,7 +86,7 @@ export const applySecurity = (app) => {
                 connectSrc: ["'self'", "data:", "*", "blob:"],
                 imgSrc: ["'self'", "data:", "blob:"],
                 styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-                fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
+                fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com", "https://synapse.drzl.dev"],
             },
         },
     }));

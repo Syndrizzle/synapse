@@ -20,23 +20,23 @@
   @keyframes pulse-glow {
     0%,
     100% {
-      box-shadow: 0 0 8px rgba(255, 193, 7, 0.6),
-        0 0 16px rgba(255, 193, 7, 0.4);
+      box-shadow: 0 0 12px rgba(255, 193, 7, 0.2),
+        0 0 22px rgba(255, 193, 7, 0.4);
     }
     50% {
-      box-shadow: 0 0 20px rgba(255, 193, 7, 0.9),
-        0 0 30px rgba(255, 193, 7, 0.6);
+      box-shadow: 0 0 30px rgba(255, 193, 7, 0.5),
+        0 0 40px rgba(255, 193, 7, 0.3);
     }
   }
   @keyframes pulse-glow-destructive {
     0%,
     100% {
-      box-shadow: 0 0 8px rgba(239, 68, 68, 0.6),
-        0 0 16px rgba(239, 68, 68, 0.4);
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.2),
+        0 0 22px rgba(239, 68, 68, 0.4);
     }
     50% {
-      box-shadow: 0 0 20px rgba(239, 68, 68, 0.9),
-        0 0 30px rgba(239, 68, 68, 0.6);
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.5),
+        0 0 40px rgba(239, 68, 68, 0.3);
     }
   }
   --shadow-button-default: inset 0.0625em 0.0625em 0.0625em var(--color-amber-200), inset -0.0625em -0.0625em 0.0625em var(--color-amber-600), 0.125em 0.125em 0.25em #000;
@@ -54,6 +54,10 @@
   --shadow-button-outline-yellow: inset 0.0625em 0.0625em 0.0625em #efb10020, inset -0.0625em -0.0625em 0.0625em var(--color-yellow-700), 0.125em 0.125em 0.25em #000;
 
   --shadow-button-outline-yellow-hover: 	 inset 0 0 0.25em #000, inset 0.0625em 0.0625em 0.0625em var(--color-yellow-300), inset -0.0625em -0.0625em 0.0625em var(--color-yellow-700), 0.125em 0.125em 0.25em transparent;
+
+  --shadow-button-green: inset 0.0625em 0.0625em 0.0625em var(--color-green-300), inset -0.0625em -0.0625em 0.0625em var(--color-green-600), 0.125em 0.125em 0.25em #000;
+
+  --shadow-button-green-hover: 	 inset 0 0 0.25em #000, inset 0.0625em 0.0625em 0.0625em transparent, inset -0.0625em -0.0625em 0.0625em transparent, 0.125em 0.125em 0.25em transparent;
 
   --ease-button: cubic-bezier(.25, .5, .5, 1);
 }

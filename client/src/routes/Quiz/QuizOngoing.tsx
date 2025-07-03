@@ -22,7 +22,12 @@ export const QuizOngoingPage = () => {
   const [visited, setVisited] = useState<boolean[]>([]);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { currentTexture, setRandomTexture } = useTextureStore();
+  const { currentTexture, setRandomTexture, preloadNextTexture } =
+    useTextureStore();
+
+  useEffect(() => {
+    preloadNextTexture();
+  }, [preloadNextTexture]);
 
   useEffect(() => {
     if (!quizId) {
