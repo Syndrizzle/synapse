@@ -129,7 +129,7 @@ export const QuizStart = () => {
             navigate("/");
           }}
         >
-          <ArrowLeft className="w-6 h-6" strokeWidth={2.5} />
+          <ArrowLeft className="w-6 h-6" strokeWidth={1.5} />
           Back
         </Button>
         <Button
@@ -148,7 +148,7 @@ export const QuizStart = () => {
             navigate(`/quiz/${quizId}`);
           }}
         >
-          <ArrowRight className="w-6 h-6" strokeWidth={2.5} />
+          <ArrowRight className="w-6 h-6" strokeWidth={1.5} />
           Hold to Start
         </Button>
       </div>

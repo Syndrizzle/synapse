@@ -115,7 +115,7 @@ export const QuizAlreadySubmitted = () => {
                     <a href={`/quiz/${resultsData.id}/results`} className="w-full lg:w-auto">
 
                         <Button>
-                            <ArrowRight />
+                            <ArrowRight strokeWidth={1.5} />
                             View Full Result
 
                         </Button>

@@ -73,7 +73,7 @@ const UploadPage = () => {
             onClick={() => setUseSearch(!useSearch)}
             className="w-1/6 md:w-1/4 justify-center"
           >
-            <Search strokeWidth={3.5} className="md:w-4 md:h-4 lg:w-5 lg:h-5 w-5 lg-5" />
+            <Search className="md:w-4 md:h-4 lg:w-5 lg:h-5 w-5 lg-5" />
           </Button>
         )}
         <Button
@@ -82,12 +82,12 @@ const UploadPage = () => {
           onHoldComplete={handleConfirmUpload}
           className="w-full md:text-base lg:text-lg "
         >
-          <Upload strokeWidth={2.5} className="md:w-4 md:h-4 lg:w-6 lg:h-6" />
+          <Upload strokeWidth={1.5} className="md:w-4 md:h-4 lg:w-5 lg:h-5" />
           Hold to Upload
         </Button>
       </div>
       <Button variant={"destructive"} holdToConfirm onHoldComplete={handleGoBack} className="md:text-base lg:text-lg">
-        <ArrowLeft strokeWidth={2.5} className="md:w-4 md:h-4 lg:w-6 lg:h-6" />
+        <ArrowLeft strokeWidth={1.5} className="md:w-4 md:h-4 lg:w-5 lg:h-5" />
         Hold to Go Back
       </Button>
     </>

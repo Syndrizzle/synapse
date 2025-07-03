@@ -3,7 +3,7 @@ import { type QuizAreaProps } from "@/types/quiz";
 
 export const QuizArea = ({ question, questionIndex, selectedAnswer, onSelectAnswer }: QuizAreaProps) => {
   return (
-    <div className="md:bg-neutral-800 md:border-2 md:border-neutral-500 w-full h-full gap-6 md:p-4 md:shadow-2xl md:shadow-neutral-950/60 flex flex-col justify-center items-center">
+    <div className="md:bg-neutral-950 md:border-2 md:border-neutral-500 w-full h-full gap-6 md:p-10 md:shadow-2xl md:shadow-neutral-950/60 flex flex-col justify-center items-center md:bg-[url(/texture-two.png)]">
       <AnimatePresence mode="wait">
         <motion.div
           key={question.id}
@@ -28,10 +28,10 @@ export const QuizArea = ({ question, questionIndex, selectedAnswer, onSelectAnsw
                 <div
                   key={index}
                   onClick={() => onSelectAnswer(index)}
-                  className={`font-body border-2 flex flex-row items-center justify-center px-6 py-3 md:text-2xl text-lg relative cursor-pointer transition-all duration-300 gap-4 ${
+                  className={`font-body flex flex-row items-center justify-center px-6 py-3 md:text-2xl text-lg relative cursor-pointer transition-all duration-300 gap-4 rounded-xl active:scale-98 ease-button lg:rounded-2xl bg-size-[80px_80px] bg-[url(/texture.png)] ${
                     selectedAnswer === index
-                      ? "bg-yellow-300 text-neutral-900 border-yellow-600 inset-shadow-sm inset-shadow-yellow-800"
-                      : "bg-neutral-900 text-neutral-50 border-neutral-500 hover:border-yellow-400 hover:text-yellow-400"
+                    ? "bg-yellow-400 shadow-button-default active:shadow-button-default-hover text-neutral-950"
+                    : "bg-neutral-800 text-neutral-50 shadow-button-outline active:shadow-button-outline-hover"
                   }`}>
                   {option}
                 </div>

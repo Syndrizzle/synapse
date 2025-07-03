@@ -6,18 +6,18 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative flex select-none items-center justify-between gap-2 font-bold font-body transition-all disabled:pointer-events-none disabled:opacity-50 outline-none w-full cursor-pointer duration-300 text-lg",
+  'relative select-none items-center justify-between gap-2 font-body transition-all disabled:pointer-events-none disabled:opacity-50 outline-none w-full cursor-pointer duration-300 text-lg rounded-xl flex bg-size-[80px_80px] text-center  uppercase tracking-wide transition-all duration-200 active:scale-98 ease-button bg-size-[80px_80px] bg-[url(/texture.png)]',
   {
     variants: {
       variant: {
-        default:
-          "bg-yellow-300 hover:bg-yellow-400 text-neutral-900 border-2 border-yellow-400 inset-shadow-sm inset-shadow-yellow-700",
-        destructive:
-          "bg-[#fa8b8b] text-neutral-900 border-2 border-red-500 hover:bg-red-400 inset-shadow-sm inset-shadow-red-800",
-        outlineyellow:
-          "bg-neutral-800 text-yellow-500 border-2 border-yellow-500",
-        outline:
-          "bg-neutral-800 text-neutral-50 border-2 border-neutral-500 hover:border-yellow-400",
+        "default":
+          "bg-yellow-400 shadow-button-default active:shadow-button-default-hover text-neutral-950",
+        "destructive":
+          "bg-[#fa8b8b] text-neutral-900 text-neutral-950 shadow-button-destructive active:shadow-button-destructive-hover",
+        "outline-yellow":
+          "bg-neutral-800 text-yellow-600 shadow-button-outline-yellow active:shadow-button-outline-yellow-hover",
+        "outline":
+          "bg-neutral-800 text-neutral-50 shadow-button-outline active:shadow-button-outline-hover",
       },
       size: {
         default: "lg:px-6 px-4 lg:py-3 py-3",
@@ -152,11 +152,12 @@ function Button({
 
   const progressStyle = {
     width: `${progress}%`,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    background: 'linear-gradient(to right, #00000070, #00000020)',
     height: '100%',
     position: 'absolute' as const,
     left: 0,
     top: 0,
+    borderRadius: 'inherit',
     transition: 'width 0.1s linear, opacity 0.3s ease-in-out',
     opacity: isHolding && progress > 0 ? 1 : 0,
   };
@@ -191,7 +192,7 @@ function Button({
         {showGlow && isHolding && (
           <motion.div
             className={cn(
-              "absolute inset-0 pointer-events-none",
+              "absolute inset-0 pointer-events-none rounded-xl",
               variant === "destructive" ? "animate-pulse-glow-destructive" : "animate-pulse-glow"
             )}
             initial={{ opacity: 0 }}

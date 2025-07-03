@@ -140,7 +140,7 @@ export const QuizResults = () => {
       >
         {({ loading }) => (
           <Button disabled={loading}>
-            <Download />
+            <Download strokeWidth={1.5}/>
             <p className="text-lg">
               {loading ? "Generating PDF..." : "Download PDF"}
             </p>

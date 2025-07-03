@@ -155,7 +155,7 @@ export const QuizOngoingPage = () => {
         visited={visited}
         onGoToQuestion={handleGoToQuestion}
       />
-      <div className="flex gap-2 flex-row">
+      <div className="flex gap-2 flex-row md:px-6">
         <Button
           onClick={handlePrevQuestion}
           className={`${currentQuestionIndex === 0
@@ -163,7 +163,7 @@ export const QuizOngoingPage = () => {
               : ""
             }`}
         >
-          <ArrowLeft />
+          <ArrowLeft strokeWidth={1.5} />
         </Button>
         <Button
           onClick={handleNextQuestion}
@@ -172,9 +172,10 @@ export const QuizOngoingPage = () => {
               : ""
             }`}
         >
-          <ArrowRight />
+          <ArrowRight strokeWidth={1.5} />
         </Button>
       </div>
+      <div className="w-full md:px-6 flex">
       <Button
         holdToConfirm
         onHoldComplete={handleFinishQuiz}
@@ -182,6 +183,7 @@ export const QuizOngoingPage = () => {
       >
         Hold to Finish
       </Button>
+      </div>
     </div>
   );
   if (isMobile) {
@@ -206,7 +208,8 @@ export const QuizOngoingPage = () => {
     );
   }
   return (
-    <div className="bg-neutral-900 lg:h-screen min-h-screen lg:p-6 p-4 flex gap-6 ">
+    <div className="bg-neutral-900 md:h-screen min-h-screen flex">
+      <div className="pl-6 py-6 w-full">
       <QuizArea
         key={currentQuestionIndex} // Ensures animation triggers
         question={quizData.questions[currentQuestionIndex]}
@@ -214,10 +217,10 @@ export const QuizOngoingPage = () => {
         selectedAnswer={answers[currentQuestionIndex]}
         onSelectAnswer={handleSelectAnswer}
       />
-
-      <div className="flex flex-col lg:w-1/3 w-2/5 justify-between">
-        <div className="lg:p-4 p-4">{headerContent}</div>
-        <div className="flex flex-col gap-4 px-0">{actionButtons}</div>
+      </div>
+      <div className="flex flex-col lg:w-1/3 w-2/5 justify-between pb-6">
+        <div className="p-8">{headerContent}</div>
+        <div className="flex flex-col gap-4">{actionButtons}</div>
       </div>
     </div>
   );

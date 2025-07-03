@@ -1,14 +1,12 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-
 @theme {
   --font-heading: "Instrument Serif", serif;
   --font-body: "Space Grotesk", sans-serif;
   --animate-wiggle: wiggle 1s ease-in-out infinite;
   --animate-pulse-glow: pulse-glow 0.8s ease-in-out infinite;
-  --animate-pulse-glow-destructive: pulse-glow-destructive 0.8s 
-  ease-in-out
+  --animate-pulse-glow-destructive: pulse-glow-destructive 0.8s ease-in-out
     infinite;
   @keyframes wiggle {
     0%,
@@ -41,4 +39,21 @@
         0 0 30px rgba(239, 68, 68, 0.6);
     }
   }
+  --shadow-button-default: inset 0.0625em 0.0625em 0.0625em var(--color-amber-200), inset -0.0625em -0.0625em 0.0625em var(--color-amber-600), 0.125em 0.125em 0.25em #000;
+
+  --shadow-button-default-hover: 	 inset 0 0 0.25em #000, inset 0.0625em 0.0625em 0.0625em transparent, inset -0.0625em -0.0625em 0.0625em transparent, 0.125em 0.125em 0.25em transparent;
+  
+  --shadow-button-destructive: inset 0.0625em 0.0625em 0.0625em var(--color-red-300), inset -0.0625em -0.0625em 0.0625em var(--color-red-500), 0.125em 0.125em 0.25em #000;
+
+  --shadow-button-destructive-hover: 	 inset 0 0 0.25em #000, inset 0.0625em 0.0625em 0.0625em transparent, inset -0.0625em -0.0625em 0.0625em transparent, 0.125em 0.125em 0.25em transparent;
+
+  --shadow-button-outline: inset 0.0625em 0.0625em 0.0625em var(--color-neutral-500), inset -0.0625em -0.0625em 0.0625em var(--color-neutral-700), 0.125em 0.125em 0.25em #000;
+
+  --shadow-button-outline-hover: 	 inset 0 0 0.25em #000, inset 0.0625em 0.0625em 0.0625em var(--color-neutral-500), inset -0.0625em -0.0625em 0.0625em var(--color-neutral-700), 0.125em 0.125em 0.25em transparent;
+
+  --shadow-button-outline-yellow: inset 0.0625em 0.0625em 0.0625em #efb10020, inset -0.0625em -0.0625em 0.0625em var(--color-yellow-700), 0.125em 0.125em 0.25em #000;
+
+  --shadow-button-outline-yellow-hover: 	 inset 0 0 0.25em #000, inset 0.0625em 0.0625em 0.0625em var(--color-yellow-300), inset -0.0625em -0.0625em 0.0625em var(--color-yellow-700), 0.125em 0.125em 0.25em transparent;
+
+  --ease-button: cubic-bezier(.25, .5, .5, 1);
 }

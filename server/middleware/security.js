@@ -83,7 +83,7 @@ export const applySecurity = (app) => {
                 defaultSrc: ["'self'", "data:"],
                 scriptSrc: ["'self'", "'unsafe-eval'", "https://cdnjs.cloudflare.com", "http://cdnjs.cloudflare.com"],
                 workerSrc: ["'self'", "blob:", "https://cdnjs.cloudflare.com"],
-                connectSrc: ["'self'", "data:", "*"],
+                connectSrc: ["'self'", "data:", "*", "blob:"],
                 imgSrc: ["'self'", "data:", "blob:"],
                 styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
                 fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],

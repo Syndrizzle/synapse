@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { Button } from "@/components//Button";
-import { Cross as Hamburger } from "hamburger-react";
+import { Rotate as Hamburger } from "hamburger-react";
 import { AnimatePresence, motion } from "motion/react";
 import { type QuizNavProps } from "@/types/quiz";
 
@@ -108,7 +108,7 @@ export const QuizNav = ({ currentQuestionIndex, answers, visited, onGoToQuestion
       return "default"; // Answered question
     }
     if (visited[index]) {
-      return "outlineyellow"; // Visited but unanswered
+      return "outline-yellow"; // Visited but unanswered
     }
     return "outline"; // Not visited
   };
@@ -132,10 +132,10 @@ export const QuizNav = ({ currentQuestionIndex, answers, visited, onGoToQuestion
       <>
         <Button
           className={`${
-            isOpen ? "bg-yellow-400" : "bg-yellow-300"
+            isOpen ? "bg-yellow-500" : "bg-yellow-400"
           } w-auto px-0 py-0` }
         >
-          <Hamburger toggled={isOpen} toggle={setOpen} size={24} />
+          <Hamburger toggled={isOpen} toggle={setOpen} size={24} rounded animateOnMount label="Show Quiz Nav" />
         </Button>
         <AnimatePresence>
           {isOpen && (
@@ -144,10 +144,10 @@ export const QuizNav = ({ currentQuestionIndex, answers, visited, onGoToQuestion
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 bg-neutral-900/95 z-40 flex items-end justify-center mb-21"
+              className="fixed inset-0 bg-neutral-900/95 z-50 flex items-end justify-center mb-20 backdrop-blur-xs border-b border-neutral-700"
               onClick={() => setOpen(false)}
             >
-              <div className="w-full px-5 relative" onClick={(e) => e.stopPropagation()}>
+              <div className="w-full relative" onClick={(e) => e.stopPropagation()}>
                 {/* Top scroll shadow */}
                 <div 
                   className={`absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-neutral-900 to-transparent pointer-events-none z-10 transition-opacity duration-300 ${
@@ -158,7 +158,7 @@ export const QuizNav = ({ currentQuestionIndex, answers, visited, onGoToQuestion
                 {/* Scrollable content */}
                 <div 
                   ref={mobileScrollRef}
-                  className="grid grid-cols-4 items-center justify-center gap-2 overflow-y-scroll max-h-72"
+                  className="grid grid-cols-4 items-center justify-center gap-2 overflow-y-scroll max-h-72 p-4"
                 >
                   {navButtons}
                 </div>
@@ -189,7 +189,7 @@ export const QuizNav = ({ currentQuestionIndex, answers, visited, onGoToQuestion
       {/* Scrollable content */}
       <div 
         ref={scrollRef}
-        className="grid lg:grid-cols-4 md:grid-cols-3 items-center justify-center gap-2 max-h-72 overflow-y-scroll overflow-x-hidden"
+        className="grid lg:grid-cols-4 md:grid-cols-3 items-center justify-center gap-2 max-h-72 overflow-y-scroll px-6 py-1"
       >
         {navButtons}
       </div>
