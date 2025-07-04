@@ -94,43 +94,72 @@ class OpenRouterService {
                 { role: 'user', content: userContent }
             ];
 
-            const requestBody = {
-                model: this.model,
-                messages: messages,
-                response_format: openRouterMCQSchema,
-                temperature: config.openrouter.temperature,
-                max_tokens: config.openrouter.maxTokens,
-                top_p: 0.9,
-                plugins: [{ id: 'file-parser', pdf: { engine: this.pdfEngine } }],
-                tools: useSearch ? [this.searchTool] : undefined,
-                tool_choice: useSearch ? "auto" : "none",
-            };
+            let responseMessage;
 
-            const initialResponse = await this._makeChatAPIRequest(requestBody);
+            if (useSearch) {
+                // Step 1: Make a request with tools enabled, but no response_format
+                const toolRequest = {
+                    model: this.model,
+                    messages: messages,
+                    temperature: config.openrouter.temperature,
+                    max_tokens: config.openrouter.maxTokens,
+                    top_p: 0.9,
+                    plugins: [{ id: 'file-parser', pdf: { engine: this.pdfEngine } }],
+                    tools: [this.searchTool],
+                    tool_choice: "auto",
+                };
 
-            let responseMessage = initialResponse.choices[0].message;
-            messages.push(responseMessage);
+                const initialResponse = await this._makeChatAPIRequest(toolRequest);
+                let intermediateMessage = initialResponse.choices[0].message;
+                messages.push(intermediateMessage);
 
-            if (useSearch && responseMessage.tool_calls) {
-                logger.info('Model requested a tool call for search.');
-                for (const toolCall of responseMessage.tool_calls) {
-                    const functionName = toolCall.function.name;
-                    if (this.toolMapping[functionName]) {
-                        const functionArgs = JSON.parse(toolCall.function.arguments);
-                        const functionResponse = await this.toolMapping[functionName](functionArgs);
-                        messages.push({
-                            tool_call_id: toolCall.id,
-                            role: "tool",
-                            name: functionName,
-                            content: functionResponse,
-                        });
+                // Step 2: Handle tool calls if any
+                if (intermediateMessage.tool_calls) {
+                    logger.info('Model requested a tool call for search.');
+                    for (const toolCall of intermediateMessage.tool_calls) {
+                        const functionName = toolCall.function.name;
+                        if (this.toolMapping[functionName]) {
+                            const functionArgs = JSON.parse(toolCall.function.arguments);
+                            const functionResponse = await this.toolMapping[functionName](functionArgs);
+                            messages.push({
+                                tool_call_id: toolCall.id,
+                                role: "tool",
+                                name: functionName,
+                                content: functionResponse,
+                            });
+                        }
                     }
+                } else {
+                    logger.info('Model did not request a tool call. Proceeding to format response.');
                 }
 
-                logger.info('Sending tool response back to the model to generate final quiz.');
-                const finalRequestBody = { ...requestBody, messages: messages, tools: undefined, tool_choice: undefined };
-                const finalResponse = await this._makeChatAPIRequest(finalRequestBody);
+                // Step 3: Make the final request to get a structured JSON response
+                const finalRequest = {
+                    model: this.model,
+                    messages: messages,
+                    response_format: openRouterMCQSchema,
+                    temperature: config.openrouter.temperature,
+                    max_tokens: config.openrouter.maxTokens,
+                    top_p: 0.9,
+                    plugins: [{ id: 'file-parser', pdf: { engine: this.pdfEngine } }],
+                };
+                const finalResponse = await this._makeChatAPIRequest(finalRequest);
                 responseMessage = finalResponse.choices[0].message;
+
+            } else {
+                // Original path: No search, just get the formatted JSON directly
+                const noSearchRequest = {
+                    model: this.model,
+                    messages: messages,
+                    response_format: openRouterMCQSchema,
+                    temperature: config.openrouter.temperature,
+                    max_tokens: config.openrouter.maxTokens,
+                    top_p: 0.9,
+                    plugins: [{ id: 'file-parser', pdf: { engine: this.pdfEngine } }],
+                    tool_choice: "none",
+                };
+                const response = await this._makeChatAPIRequest(noSearchRequest);
+                responseMessage = response.choices[0].message;
             }
 
             const parsedContent = this._parseAndValidateResponse(responseMessage.content);
@@ -139,10 +168,7 @@ class OpenRouterService {
                 throw new Error('Invalid response format from OpenRouter');
             }
 
-            // Calculate total size of all PDFs
             const totalSize = pdfBuffers.reduce((sum, buffer) => sum + buffer.length, 0);
-
-            // Validate and enhance the quiz
             const quiz = this.validateAndEnhanceQuiz(parsedContent.quiz, totalSize, pdfBuffers.length);
 
             logger.info(`Successfully generated ${quiz.questions.length} MCQs from ${pdfBuffers.length} PDF(s)`);
