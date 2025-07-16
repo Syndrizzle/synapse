@@ -3,7 +3,6 @@
 ![GitHub License](https://img.shields.io/github/license/syndrizzle/synapse?style=for-the-badge&color=facc15&labelColor=262626&logo=gnu&logoColor=facc15)
 ![Website](https://img.shields.io/website?url=https://synapse.drzl.dev&style=for-the-badge&color=facc15&labelColor=262626&up_message=online&down_message=offline&logo=react&logoColor=facc15&link=https://synapse.drzl.dev)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/syndrizzle/synapse/main.yml?style=for-the-badge&color=facc15&labelColor=262626&logo=githubactions&logoColor=facc15)
-![Runs On Coolify](https://img.shields.io/badge/runs%20on%20coolify-8455f6?style=for-the-badge&link=https://github.com/Syndrizzle/synapse/blob/main/docker-compose.coolify.yml&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02NC4yNSAxNjBIMTI3Ljc1TDEyOCAxNjAuMjVWMTkySDE1OS43NUwxNjAgMTkyLjI1VjM1MkgzODMuNzVMMzg0IDM1Mi4yNVYzODRINDE1Ljc1TDQxNiAzODQuMjVWNDQ3Ljc1TDQxNC43NSA0NDhIMTYwLjI1TDE2MCA0NDcuNzVWNDE2SDEyOC4yNUwxMjggNDE1Ljc1VjM4NEg5Ni4yNUw5NiAzODMuNzVWMzUySDY0LjI1TDY0IDM1MS43NVYxNjAuMjVMNjQuMjUgMTYwWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTEyOC4yNSA5NkgzODMuNzVMMzg0IDk2LjI1VjEyOEg0MTUuNzVMNDE2IDEyOC4yNVYxOTEuNzVMNDE0Ljc1IDE5MkgxNjAuMjVMMTYwIDE5MS43NVYxNjBIMTI4LjI1TDEyOCAxNTkuNzVWOTYuMjVMMTI4LjI1IDk2WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTM4NC4yNSAzODRINDE1Ljc1TDQxNiAzODQuMjVWNDQ3Ljc1TDQxNC43NSA0NDhIMTYwLjI1TDE2MCA0NDcuNzVWNDE2LjI1TDM4NCA0MTZWNDA4Ljc1TDM4NC4yNSAzODRaIiBmaWxsPSIjRDRENEQ0Ii8+CjxwYXRoIGQ9Ik0zODQuMjUgMTI4SDQxNS43NUw0MTYgMTI4LjI1VjE5MS43NUw0MTQuNzUgMTkySDE2MC4yNUwxNjAgMTkxLjc1VjE2MC4yNUwzODQgMTYwVjE1Mi43NUwzODQuMjUgMTI4WiIgZmlsbD0iI0Q0RDRENCIvPgo8cGF0aCBkPSJNMTI4LjI1IDE5MkgxNTkuNzVMMTYwIDE5Mi4yNVYzNTEuNzVMMTU4LjI1IDM1MkwxMzEuMjUgMzUxLjc1TDEyOC4yNSAzNTEuNVYxOTJaIiBmaWxsPSIjRDRENEQ0Ii8+CjxwYXRoIGQ9Ik0xMTkuNSAzNTJIMTI3LjVMMTI3Ljc1IDM1Mi4yNVYzODRIOTYuMjVMOTYgMzgzLjc1VjM1Mi4yNUwxMTkuNSAzNTJaIiBmaWxsPSIjRDRENEQ0Ii8+Cjwvc3ZnPgo=)
 
 ## ✨ Features
 - Uses [openrouter](https://openrouter.ai/), which offers a really wide range of models, and a plethora of API features.
@@ -26,7 +25,7 @@
 `7.` If everything goes as planned, the server won't hiccup, and you can visit `localhost:3000` to check it out. If you do not see it, check if there's something wrong in the logs.
 
 ## 🚀 Deploy
-- As stated above, this proudly runs on [Coolify](https://coolify.io/). I do not support or endorse vercel.
+- You can deploy this on coolify for now. I will work on making it serverless so it can be easier to deploy it on vercel.
 - There is a [`docker-compose.coolify.yml`](https://github.com/Syndrizzle/synapse/blob/main/docker-compose.coolify.yml) file, use that.
 - Open your coolify instance, when creating a new project select `Empty Docker Compose` and paste it there.
 - Optionally configure your desired environment values from [`.env.example`](https://github.com/Syndrizzle/synapse/blob/main/.env.example), and the Domain.
